@@ -1,0 +1,200 @@
+match_id,date,team_1,team_2,venue,substitute_player,event,player_out,dismissal_kind
+1082591,2017-04-05,Sunrisers Hyderabad,Royal Challengers Bangalore,"Rajiv Gandhi International Stadium, Uppal",CJ Jordan,substitute fielder,YS Chahal,run out
+1082596,2017-04-09,Sunrisers Hyderabad,Gujarat Lions,"Rajiv Gandhi International Stadium, Uppal",V Shankar,substitute fielder,DR Smith,caught
+1082597,2017-04-09,Mumbai Indians,Kolkata Knight Riders,Wankhede Stadium,R Dhawan,substitute fielder,KA Pollard,caught
+1082604,2017-04-15,Kolkata Knight Riders,Sunrisers Hyderabad,Eden Gardens,R Dhawan,substitute fielder,Yuvraj Singh,caught
+1082611,2017-04-19,Sunrisers Hyderabad,Delhi Daredevils,"Rajiv Gandhi International Stadium, Uppal",V Shankar,substitute fielder,KK Nair,run out
+1082611,2017-04-19,Sunrisers Hyderabad,Delhi Daredevils,"Rajiv Gandhi International Stadium, Uppal",CJ Jordan,substitute fielder,AD Mathews,caught
+1082615,2017-04-22,Rising Pune Supergiant,Sunrisers Hyderabad,Maharashtra Cricket Association Stadium,V Shankar,substitute fielder,BA Stokes,caught
+1082624,2017-04-29,Rising Pune Supergiant,Royal Challengers Bangalore,Maharashtra Cricket Association Stadium,MA Agarwal,substitute fielder,V Kohli,caught
+1082631,2017-05-03,Kolkata Knight Riders,Rising Pune Supergiant,Eden Gardens,R Powell,substitute fielder,RA Tripathi,caught
+1082632,2017-05-04,Delhi Daredevils,Gujarat Lions,Feroz Shah Kotla,CR Brathwaite,substitute fielder,JP Faulkner,caught
+1082637,2017-05-07,Kings XI Punjab,Gujarat Lions,"Punjab Cricket Association IS Bindra Stadium, Mohali",DA Miller,substitute fielder,Ishan Kishan,caught
+1082644,2017-05-13,Kolkata Knight Riders,Mumbai Indians,Eden Gardens,J Suchith,substitute fielder,CA Lynn,caught
+1082650,2017-05-21,Mumbai Indians,Rising Pune Supergiant,"Rajiv Gandhi International Stadium, Uppal",J Suchith,substitute fielder,Washington Sundar,run out
+1136565,2018-04-10,Kolkata Knight Riders,Chennai Super Kings,MA Chidambaram Stadium,Shivam Mavi,substitute fielder,AT Rayudu,caught
+1136574,2018-04-17,Mumbai Indians,Royal Challengers Bangalore,Wankhede Stadium,JP Duminy,substitute fielder,CJ Anderson,caught
+1136574,2018-04-17,Mumbai Indians,Royal Challengers Bangalore,Wankhede Stadium,AP Tare,substitute fielder,SN Khan,stumped
+1136576,2018-04-19,Kings XI Punjab,Sunrisers Hyderabad,Punjab Cricket Association IS Bindra Stadium,MK Tiwary,substitute fielder,DJ Hooda,caught
+1136583,2018-04-24,Sunrisers Hyderabad,Mumbai Indians,Wankhede Stadium,DJ Hooda,substitute fielder,Ishan Kishan,caught
+1136597,2018-05-06,Mumbai Indians,Kolkata Knight Riders,Wankhede Stadium,RK Singh,substitute fielder,RG Sharma,caught
+1136604,2018-05-12,Kolkata Knight Riders,Kings XI Punjab,Holkar Cricket Stadium,DA Miller,substitute fielder,N Rana,caught
+1136607,2018-05-13,Mumbai Indians,Rajasthan Royals,Wankhede Stadium,RD Chahar,substitute fielder,SV Samson,caught
+1136614,2018-05-19,Sunrisers Hyderabad,Kolkata Knight Riders,Rajiv Gandhi International Stadium,RK Singh,substitute fielder,MK Pandey,caught
+1136615,2018-05-20,Delhi Daredevils,Mumbai Indians,Arun Jaitley Stadium,R Tewatia,substitute fielder,KH Pandya,caught
+1136620,2018-05-27,Sunrisers Hyderabad,Chennai Super Kings,Wankhede Stadium,DR Shorey,substitute fielder,DJ Hooda,caught
+1175359,2019-03-25,Kings XI Punjab,Rajasthan Royals,Sawai Mansingh Stadium,KK Nair,substitute fielder,BA Stokes,caught
+1175363,2019-03-29,Rajasthan Royals,Sunrisers Hyderabad,Rajiv Gandhi International Stadium,P Chopra,substitute fielder,V Shankar,caught
+1175365,2019-03-30,Kolkata Knight Riders,Delhi Capitals,Arun Jaitley Stadium,R Tewatia,substitute fielder,AD Russell,caught
+1175367,2019-03-31,Chennai Super Kings,Rajasthan Royals,MA Chidambaram Stadium,DR Shorey,substitute fielder,SPD Smith,caught
+1175368,2019-04-01,Kings XI Punjab,Delhi Capitals,Punjab Cricket Association IS Bindra Stadium,KK Nair,substitute fielder,CA Ingram,caught
+1175372,2019-04-05,Royal Challengers Bangalore,Kolkata Knight Riders,M.Chinnaswamy Stadium,H Klaasen,substitute fielder,N Rana,caught
+1178397,2019-04-08,Sunrisers Hyderabad,Kings XI Punjab,Punjab Cricket Association IS Bindra Stadium,KK Nair,substitute fielder,MK Pandey,caught
+1178399,2019-04-10,Kings XI Punjab,Mumbai Indians,Wankhede Stadium,MC Henriques,substitute fielder,SA Yadav,caught
+1178400,2019-04-11,Rajasthan Royals,Chennai Super Kings,Sawai Mansingh Stadium,DR Shorey,substitute fielder,SV Samson,caught
+1178404,2019-04-14,Kolkata Knight Riders,Chennai Super Kings,Eden Gardens,DR Shorey,substitute fielder,AD Russell,caught
+1178406,2019-04-15,Royal Challengers Bangalore,Mumbai Indians,Wankhede Stadium,Milind Kumar,substitute fielder,KH Pandya,caught
+1178414,2019-04-21,Royal Challengers Bangalore,Chennai Super Kings,M.Chinnaswamy Stadium,DR Shorey,substitute fielder,MP Stoinis,caught
+1178430,2019-05-05,Chennai Super Kings,Kings XI Punjab,Punjab Cricket Association IS Bindra Stadium,DR Shorey,substitute fielder,CH Gayle,caught
+1181764,2019-05-07,Chennai Super Kings,Mumbai Indians,MA Chidambaram Stadium,Anmolpreet Singh,substitute fielder,F du Plessis,caught
+1216498,2020-10-24,Kings XI Punjab,Sunrisers Hyderabad,Dubai International Cricket Stadium,J Suchith,substitute fielder,MK Pandey,caught
+1216511,2020-10-06,Mumbai Indians,Rajasthan Royals,Sheikh Zayed Stadium,AS Roy,substitute fielder,MK Lomror,caught
+1216515,2020-10-03,Delhi Capitals,Kolkata Knight Riders,Sharjah Cricket Stadium,AR Patel,substitute fielder,N Rana,caught
+1216517,2020-10-18,Mumbai Indians,Kings XI Punjab,Dubai International Cricket Stadium,AS Roy,substitute fielder,N Pooran,caught
+1216523,2020-10-10,Kolkata Knight Riders,Kings XI Punjab,Sheikh Zayed Stadium,CJ Green,substitute fielder,Mandeep Singh,caught
+1216524,2020-10-27,Sunrisers Hyderabad,Delhi Capitals,Dubai International Cricket Stadium,PK Garg,substitute fielder,AR Patel,caught
+1216524,2020-10-27,Sunrisers Hyderabad,Delhi Capitals,Dubai International Cricket Stadium,SP Goswami,substitute fielder,RR Pant,caught
+1216530,2020-11-01,Kolkata Knight Riders,Rajasthan Royals,Dubai International Cricket Stadium,DA Miller,substitute fielder,AD Russell,caught
+1216543,2020-10-14,Delhi Capitals,Rajasthan Royals,Dubai International Cricket Stadium,Lalit Yadav,substitute fielder,BA Stokes,caught
+1216547,2020-09-28,Royal Challengers Bangalore,Mumbai Indians,Dubai International Cricket Stadium,P Negi,substitute fielder,RG Sharma,caught
+1237180,2020-11-08,Delhi Capitals,Sunrisers Hyderabad,Sheikh Zayed Stadium,KMA Paul,substitute fielder,Abdul Samad,caught
+1237181,2020-11-10,Delhi Capitals,Mumbai Indians,Dubai International Cricket Stadium,AS Roy,substitute fielder,AR Patel,caught
+1237181,2020-11-10,Delhi Capitals,Mumbai Indians,Dubai International Cricket Stadium,Lalit Yadav,substitute fielder,RG Sharma,caught
+1254066,2021-04-17,Mumbai Indians,Sunrisers Hyderabad,"MA Chidambaram Stadium, Chepauk, Chennai",J Suchith,substitute fielder,Q de Kock,caught
+1254067,2021-04-18,Royal Challengers Bangalore,Kolkata Knight Riders,"MA Chidambaram Stadium, Chepauk, Chennai",DT Christian,substitute fielder,Shubman Gill,caught
+1254068,2021-04-18,Punjab Kings,Delhi Capitals,"Wankhede Stadium, Mumbai",RV Patel,substitute fielder,CH Gayle,caught
+1254075,2021-04-24,Kolkata Knight Riders,Rajasthan Royals,"Wankhede Stadium, Mumbai",KL Nagarkoti,substitute fielder,YBK Jaiswal,caught
+1254092,2021-09-28,Delhi Capitals,Kolkata Knight Riders,Sharjah Cricket Stadium,KK Nair,substitute fielder,RR Pant,run out
+1254093,2021-10-05,Rajasthan Royals,Mumbai Indians,Sharjah Cricket Stadium,MK Lomror,substitute fielder,SA Yadav,caught
+1254098,2021-09-26,Kolkata Knight Riders,Chennai Super Kings,"Zayed Cricket Stadium, Abu Dhabi",KL Nagarkoti,substitute fielder,SM Curran,caught
+1254103,2021-09-29,Rajasthan Royals,Royal Challengers Bangalore,Dubai International Cricket Stadium,Anuj Rawat,substitute fielder,KS Bharat,caught
+1254104,2021-09-19,Chennai Super Kings,Mumbai Indians,Dubai International Cricket Stadium,K Gowtham,substitute fielder,AF Milne,caught
+1254105,2021-09-22,Sunrisers Hyderabad,Delhi Capitals,Dubai International Cricket Stadium,SPD Smith,substitute fielder,Rashid Khan,run out
+1254107,2021-09-25,Punjab Kings,Sunrisers Hyderabad,Sharjah Cricket Stadium,J Suchith,substitute fielder,KL Rahul,caught
+1254108,2021-09-26,Royal Challengers Bangalore,Mumbai Indians,Dubai International Cricket Stadium,AS Roy,substitute fielder,V Kohli,caught
+1254114,2021-10-10,Delhi Capitals,Chennai Super Kings,Dubai International Cricket Stadium,MJ Santner,substitute fielder,AR Patel,caught
+1254116,2021-10-13,Delhi Capitals,Kolkata Knight Riders,Sharjah Cricket Stadium,SPD Smith,substitute fielder,VR Iyer,caught
+1304065,2022-04-10,Delhi Capitals,Kolkata Knight Riders,"Brabourne Stadium, Mumbai",RK Singh,substitute fielder,R Powell,caught
+1304072,2022-04-16,Lucknow Super Giants,Mumbai Indians,"Brabourne Stadium, Mumbai",K Gowtham,substitute fielder,SA Yadav,caught
+1304083,2022-04-24,Lucknow Super Giants,Mumbai Indians,"Wankhede Stadium, Mumbai",K Gowtham,substitute fielder,RG Sharma,caught
+1304089,2022-04-30,Royal Challengers Bangalore,Gujarat Titans,"Brabourne Stadium, Mumbai",Anuj Rawat,substitute fielder,B Sai Sudharsan,caught
+1304095,2022-05-04,Royal Challengers Bangalore,Chennai Super Kings,"Maharashtra Cricket Association Stadium, Pune",SS Prabhudessai,substitute fielder,RD Gaikwad,caught
+1304101,2022-05-08,Chennai Super Kings,Delhi Capitals,"Dr DY Patil Sports Academy, Mumbai",KL Nagarkoti,substitute fielder,RV Uthappa,caught
+1304104,2022-05-11,Rajasthan Royals,Delhi Capitals,"Dr DY Patil Sports Academy, Mumbai",KL Nagarkoti,substitute fielder,D Padikkal,caught
+1304111,2022-05-17,Sunrisers Hyderabad,Mumbai Indians,"Wankhede Stadium, Mumbai",J Suchith,substitute fielder,RG Sharma,caught
+1359477,2023-04-01,Lucknow Super Giants,Delhi Capitals,"Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",PN Mankad,substitute fielder,AR Patel,caught
+1359482,2023-04-05,Punjab Kings,Rajasthan Royals,"Barsapara Cricket Stadium, Guwahati",MW Short,substitute fielder,YBK Jaiswal,caught
+1359487,2023-04-09,Gujarat Titans,Kolkata Knight Riders,"Narendra Modi Stadium, Ahmedabad",AS Roy,substitute fielder,B Sai Sudharsan,caught
+1359487,2023-04-09,Gujarat Titans,Kolkata Knight Riders,"Narendra Modi Stadium, Ahmedabad",KS Bharat,substitute fielder,AD Russell,caught
+1359487,2023-04-09,Gujarat Titans,Kolkata Knight Riders,"Narendra Modi Stadium, Ahmedabad",J Yadav,substitute fielder,SP Narine,caught
+1359493,2023-04-14,Sunrisers Hyderabad,Kolkata Knight Riders,"Eden Gardens, Kolkata",GD Phillips,substitute fielder,N Jagadeesan,caught
+1359495,2023-04-15,Lucknow Super Giants,Punjab Kings,"Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",NT Ellis,substitute fielder,KL Rahul,caught
+1359495,2023-04-15,Lucknow Super Giants,Punjab Kings,"Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",PN Mankad,substitute fielder,Harpreet Singh,caught
+1359496,2023-04-16,Kolkata Knight Riders,Mumbai Indians,"Wankhede Stadium, Mumbai",Ramandeep Singh,substitute fielder,N Rana,caught
+1359498,2023-04-17,Chennai Super Kings,Royal Challengers Bangalore,"M Chinnaswamy Stadium, Bengaluru",SS Prabhudessai,substitute fielder,RA Jadeja,caught
+1359502,2023-04-20,Kolkata Knight Riders,Delhi Capitals,"Arun Jaitley Stadium, Delhi",YV Dhull,substitute fielder,CV Varun,run out
+1359502,2023-04-20,Kolkata Knight Riders,Delhi Capitals,"Arun Jaitley Stadium, Delhi",D Wiese,substitute fielder,MR Marsh,caught
+1359510,2023-04-26,Kolkata Knight Riders,Royal Challengers Bangalore,"M Chinnaswamy Stadium, Bengaluru",AS Roy,substitute fielder,SS Prabhudessai,run out
+1359512,2023-04-28,Lucknow Super Giants,Punjab Kings,"Punjab Cricket Association IS Bindra Stadium, Mohali, Chandigarh",DR Sams,substitute fielder,P Simran Singh,caught
+1359515,2023-04-30,Chennai Super Kings,Punjab Kings,"MA Chidambaram Stadium, Chepauk, Chennai",SK Rasheed,substitute fielder,JM Sharma,caught
+1359516,2023-04-30,Rajasthan Royals,Mumbai Indians,"Wankhede Stadium, Mumbai",Ramandeep Singh,substitute fielder,JC Buttler,caught
+1359517,2023-05-01,Royal Challengers Bangalore,Lucknow Super Giants,"Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",Sonu Yadav,substitute fielder,K Gowtham,run out
+1359525,2023-05-07,Gujarat Titans,Lucknow Super Giants,"Narendra Modi Stadium, Ahmedabad",PN Mankad,substitute fielder,WP Saha,caught
+1359528,2023-05-09,Royal Challengers Bangalore,Mumbai Indians,"Wankhede Stadium, Mumbai",Vishnu Vinod,substitute fielder,F du Plessis,caught
+1359536,2023-05-15,Gujarat Titans,Sunrisers Hyderabad,"Narendra Modi Stadium, Ahmedabad",Shivam Mavi,substitute fielder,Abdul Samad,caught
+1359537,2023-05-16,Lucknow Super Giants,Mumbai Indians,"Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",K Gowtham,substitute fielder,N Wadhera,caught
+1359540,2023-05-19,Punjab Kings,Rajasthan Royals,"Himachal Pradesh Cricket Association Stadium, Dharamsala",D Ferreira,substitute fielder,JM Sharma,caught
+1359540,2023-05-19,Punjab Kings,Rajasthan Royals,"Himachal Pradesh Cricket Association Stadium, Dharamsala",R Dhawan,substitute fielder,SV Samson,caught
+1359543,2023-05-21,Sunrisers Hyderabad,Mumbai Indians,"Wankhede Stadium, Mumbai",Ramandeep Singh,substitute fielder,Vivrant Sharma,caught
+1359544,2023-05-21,Royal Challengers Bangalore,Gujarat Titans,"M Chinnaswamy Stadium, Bengaluru",SS Prabhudessai,substitute fielder,MD Shanaka,caught
+1370350,2023-05-23,Chennai Super Kings,Gujarat Titans,"MA Chidambaram Stadium, Chepauk, Chennai",Subhransu Senapati,substitute fielder,DG Nalkande,run out
+1422120,2024-03-23,Delhi Capitals,Punjab Kings,"Maharaja Yadavindra Singh International Cricket Stadium, Mullanpur",Tanay Thyagarajan,substitute fielder,AR Patel,run out
+1422122,2024-03-24,Rajasthan Royals,Lucknow Super Giants,"Sawai Mansingh Stadium, Jaipur",DJ Hooda,substitute fielder,R Parag,caught
+1422123,2024-03-24,Gujarat Titans,Mumbai Indians,"Narendra Modi Stadium, Ahmedabad",A Manohar,substitute fielder,Tilak Varma,caught
+1422129,2024-03-30,Lucknow Super Giants,Punjab Kings,"Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",Tanay Thyagarajan,substitute fielder,Ravi Bishnoi,caught
+1422132,2024-04-01,Mumbai Indians,Rajasthan Royals,"Wankhede Stadium, Mumbai",R Powell,substitute fielder,HH Pandya,caught
+1422134,2024-04-03,Kolkata Knight Riders,Delhi Capitals,"Dr. Y.S. Rajasekhara Reddy ACA-VDCA Cricket Stadium, Visakhapatnam",MK Pandey,substitute fielder,AR Patel,caught
+1422138,2024-04-07,Mumbai Indians,Delhi Capitals,"Wankhede Stadium, Mumbai",J Fraser-McGurk,substitute fielder,SA Yadav,caught
+1422139,2024-04-07,Lucknow Super Giants,Gujarat Titans,"Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",DJ Hooda,substitute fielder,Rashid Khan,caught
+1426281,2024-04-27,Delhi Capitals,Mumbai Indians,"Arun Jaitley Stadium, Delhi",Sumit Kumar,substitute fielder,Tilak Varma,run out
+1426283,2024-04-28,Gujarat Titans,Royal Challengers Bengaluru,"Narendra Modi Stadium, Ahmedabad",V Shankar,substitute fielder,F du Plessis,caught
+1426284,2024-04-28,Chennai Super Kings,Sunrisers Hyderabad,"MA Chidambaram Stadium, Chepauk, Chennai",Sameer Rizvi,substitute fielder,Abdul Samad,caught
+1426286,2024-04-30,Mumbai Indians,Lucknow Super Giants,"Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",Naman Dhir,substitute fielder,A Badoni,run out
+1426289,2024-05-03,Kolkata Knight Riders,Mumbai Indians,"Wankhede Stadium, Mumbai",D Brevis,substitute fielder,MK Pandey,caught
+1426291,2024-05-05,Chennai Super Kings,Punjab Kings,"Himachal Pradesh Cricket Association Stadium, Dharamsala",Sameer Rizvi,substitute fielder,P Simran Singh,caught
+1426292,2024-05-05,Kolkata Knight Riders,Lucknow Super Giants,"Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",D Padikkal,substitute fielder,SP Narine,caught
+1426292,2024-05-05,Kolkata Knight Riders,Lucknow Super Giants,"Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",K Gowtham,substitute fielder,AD Russell,caught
+1426310,2024-05-22,Royal Challengers Bengaluru,Rajasthan Royals,"Narendra Modi Stadium, Ahmedabad",D Ferreira,substitute fielder,V Kohli,caught
+1473441,2025-03-24,Lucknow Super Giants,Delhi Capitals,"Dr. Y.S. Rajasekhara Reddy ACA-VDCA Cricket Stadium, Visakhapatnam",T Vijay,substitute fielder,Shahbaz Ahmed,caught
+1473445,2025-03-28,Royal Challengers Bengaluru,Chennai Super Kings,"MA Chidambaram Stadium, Chepauk, Chennai",MS Bhandage,substitute fielder,RD Gaikwad,caught
+1473452,2025-04-03,Kolkata Knight Riders,Sunrisers Hyderabad,"Eden Gardens, Kolkata",AS Roy,substitute fielder,PHKD Mendis,caught
+1473453,2025-04-04,Lucknow Super Giants,Mumbai Indians,"Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",C Bosch,substitute fielder,RR Pant,caught
+1473464,2025-04-12,Punjab Kings,Sunrisers Hyderabad,"Rajiv Gandhi International Stadium, Uppal, Hyderabad",P Dubey,substitute fielder,Abhishek Sharma,caught
+1473466,2025-04-13,Mumbai Indians,Delhi Capitals,"Arun Jaitley Stadium, Delhi",RA Bawa,substitute fielder,Kuldeep Yadav,run out
+1473470,2025-04-17,Sunrisers Hyderabad,Mumbai Indians,"Wankhede Stadium, Mumbai",RA Bawa,substitute fielder,Abhishek Sharma,caught
+1473472,2025-04-19,Delhi Capitals,Gujarat Titans,"Narendra Modi Stadium, Ahmedabad",MK Lomror,substitute fielder,Ashutosh Sharma,caught
+1473490,2025-05-04,Kolkata Knight Riders,Rajasthan Royals,"Eden Gardens, Kolkata",Ashok Sharma,substitute fielder,A Raghuvanshi,caught
+1473501,2025-05-21,Mumbai Indians,Delhi Capitals,"Wankhede Stadium, Mumbai",RA Bawa,substitute fielder,Kuldeep Yadav,caught
+1473502,2025-05-22,Lucknow Super Giants,Gujarat Titans,"Narendra Modi Stadium, Ahmedabad",Ravi Bishnoi,substitute fielder,SE Rutherford,caught
+1473511,2025-06-03,Royal Challengers Bengaluru,Punjab Kings,"Narendra Modi Stadium, Ahmedabad",MS Bhandage,substitute fielder,Azmatullah Omarzai,caught
+1527675,2026-03-29,Kolkata Knight Riders,Mumbai Indians,"Wankhede Stadium, Mumbai",MK Pandey,substitute fielder,Tilak Varma,caught
+1527684,2026-04-05,Royal Challengers Bengaluru,Chennai Super Kings,"M Chinnaswamy Stadium, Bengaluru",JG Bethell,substitute fielder,J Overton,caught
+1529266,2026-04-15,Lucknow Super Giants,Royal Challengers Bengaluru,"M Chinnaswamy Stadium, Bengaluru",Himmat Singh,substitute fielder,D Padikkal,caught
+1529273,2026-04-20,Mumbai Indians,Gujarat Titans,"Narendra Modi Stadium, Ahmedabad",RA Bawa,substitute fielder,Rashid Khan,caught
+1529274,2026-04-21,Sunrisers Hyderabad,Delhi Capitals,"Rajiv Gandhi International Stadium, Uppal, Hyderabad",LS Livingstone,substitute fielder,P Nissanka,caught
+1529275,2026-04-22,Rajasthan Royals,Lucknow Super Giants,"Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",Ravi Singh,substitute fielder,A Badoni,run out
+1529278,2026-04-25,Delhi Capitals,Punjab Kings,"Arun Jaitley Stadium, Delhi",KK Nair,substitute fielder,N Wadhera,caught
+1529287,2026-05-02,Mumbai Indians,Chennai Super Kings,"MA Chidambaram Stadium, Chepauk, Chennai",SN Khan,substitute fielder,Naman Dhir,caught
+1529296,2026-05-10,Lucknow Super Giants,Chennai Super Kings,"MA Chidambaram Stadium, Chepauk, Chennai",SN Khan,substitute fielder,N Pooran,caught
+1529298,2026-05-11,Punjab Kings,Delhi Capitals,"Himachal Pradesh Cricket Association Stadium, Dharamsala",P Dubey,substitute fielder,Ashutosh Sharma,caught
+1529303,2026-05-16,Kolkata Knight Riders,Gujarat Titans,"Eden Gardens, Kolkata",Ramandeep Singh,substitute fielder,JC Buttler,caught
+1529310,2026-05-22,Sunrisers Hyderabad,Royal Challengers Bengaluru,"Rajiv Gandhi International Stadium, Uppal, Hyderabad",JM Cox,substitute fielder,Abhishek Sharma,caught
+1529311,2026-05-23,Lucknow Super Giants,Punjab Kings,"Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",P Dubey,substitute fielder,MD Choudhary,caught
+1529313,2026-05-24,Delhi Capitals,Kolkata Knight Riders,"Eden Gardens, Kolkata",Sameer Rizvi,substitute fielder,R Powell,run out
+335991,2008-04-25,Kings XI Punjab,Mumbai Indians,"Punjab Cricket Association Stadium, Mohali",AM Rahane,substitute fielder,DPMD Jayawardene,caught
+335996,2008-04-28,Royal Challengers Bangalore,Chennai Super Kings,M Chinnaswamy Stadium,R Vinay Kumar,substitute fielder,MS Dhoni,caught
+336000,2008-05-01,Rajasthan Royals,Kolkata Knight Riders,Sawai Mansingh Stadium,T Kohli,substitute fielder,AB Dinda,caught
+336002,2008-05-25,Deccan Chargers,Royal Challengers Bangalore,"Rajiv Gandhi International Stadium, Uppal",B Chipli,substitute fielder,AS Yadav,caught
+336020,2008-05-15,Delhi Daredevils,Deccan Chargers,Feroz Shah Kotla,AB de Villiers,substitute fielder,Shahid Afridi,caught
+336020,2008-05-15,Delhi Daredevils,Deccan Chargers,Feroz Shah Kotla,Shoaib Malik,substitute fielder,Y Venugopal Rao,caught
+336023,2008-05-17,Rajasthan Royals,Royal Challengers Bangalore,Sawai Mansingh Stadium,T Kohli,substitute fielder,Misbah-ul-Haq,caught
+336026,2008-05-19,Royal Challengers Bangalore,Delhi Daredevils,M Chinnaswamy Stadium,Shoaib Malik,substitute fielder,CL White,run out
+336033,2008-05-24,Chennai Super Kings,Rajasthan Royals,"MA Chidambaram Stadium, Chepauk",RA Jadeja,substitute fielder,JA Morkel,caught
+336038,2008-05-30,Delhi Daredevils,Rajasthan Royals,Wankhede Stadium,T Kohli,substitute fielder,G Gambhir,caught
+392189,2009-04-23,Chennai Super Kings,Delhi Daredevils,Kingsmead,DA Warner,substitute fielder,A Flintoff,caught
+392200,2009-04-29,Kings XI Punjab,Mumbai Indians,Kingsmead,T Kohli,substitute fielder,JP Duminy,caught
+392228,2009-05-16,Deccan Chargers,Kolkata Knight Riders,New Wanderers Stadium,LR Shukla,substitute fielder,AC Gilchrist,caught
+419111,2010-03-15,Rajasthan Royals,Delhi Daredevils,"Sardar Patel Stadium, Motera",FY Fazal,substitute fielder,AB de Villiers,caught
+419114,2010-03-17,Delhi Daredevils,Mumbai Indians,Feroz Shah Kotla,Y Nagar,substitute fielder,ST Jayasuriya,caught
+419118,2010-03-20,Rajasthan Royals,Kolkata Knight Riders,"Sardar Patel Stadium, Motera",AS Raut,substitute fielder,AD Mathews,run out
+419121,2010-03-21,Chennai Super Kings,Kings XI Punjab,"MA Chidambaram Stadium, Chepauk",GJ Bailey,substitute fielder,Yuvraj Singh,caught
+419123,2010-03-23,Royal Challengers Bangalore,Chennai Super Kings,M Chinnaswamy Stadium,KP Appanna,substitute fielder,S Badrinath,caught
+419130,2010-03-28,Deccan Chargers,Mumbai Indians,Dr DY Patil Sports Academy,JP Duminy,substitute fielder,Jaskaran Singh,caught
+419134,2010-03-31,Delhi Daredevils,Rajasthan Royals,Feroz Shah Kotla,AS Raut,substitute fielder,KD Karthik,caught
+419139,2010-04-04,Kolkata Knight Riders,Kings XI Punjab,Eden Gardens,M Kaif,substitute fielder,MK Tiwary,caught
+419150,2010-04-11,Rajasthan Royals,Mumbai Indians,Sawai Mansingh Stadium,S Dhawan,substitute fielder,AP Dole,caught
+501199,2011-04-09,Deccan Chargers,Rajasthan Royals,"Rajiv Gandhi International Stadium, Uppal",AM Rahane,substitute fielder,DT Christian,caught
+501207,2011-04-13,Pune Warriors,Kochi Tuskers Kerala,Dr DY Patil Sports Academy,NL McCullum,substitute fielder,S Sreesanth,run out
+501209,2011-04-15,Rajasthan Royals,Kolkata Knight Riders,Sawai Mansingh Stadium,FY Fazal,substitute fielder,MS Bisla,run out
+501226,2011-04-25,Chennai Super Kings,Pune Warriors,"MA Chidambaram Stadium, Chepauk",A Mukund,substitute fielder,JE Taylor,run out
+501230,2011-04-28,Delhi Daredevils,Kolkata Knight Riders,Feroz Shah Kotla,Shakib Al Hasan,substitute fielder,TR Birt,caught
+501236,2011-05-01,Chennai Super Kings,Deccan Chargers,"MA Chidambaram Stadium, Chepauk",F du Plessis,substitute fielder,CL White,caught
+501247,2011-05-08,Royal Challengers Bangalore,Kochi Tuskers Kerala,M Chinnaswamy Stadium,KB Arun Karthik,substitute fielder,BB McCullum,caught
+548318,2012-04-12,Chennai Super Kings,Royal Challengers Bangalore,"MA Chidambaram Stadium, Chepauk",TM Dilshan,substitute fielder,MS Dhoni,caught
+548336,2012-04-23,Rajasthan Royals,Royal Challengers Bangalore,Sawai Mansingh Stadium,LA Pomersbach,substitute fielder,AM Rahane,caught
+548341,2012-04-26,Pune Warriors,Deccan Chargers,Subrata Roy Sahara Stadium,DJ Harris,substitute fielder,JD Ryder,caught
+548342,2012-04-27,Delhi Daredevils,Mumbai Indians,Feroz Shah Kotla,NLTC Perera,substitute fielder,IK Pathan,caught
+548343,2012-04-28,Chennai Super Kings,Kings XI Punjab,"MA Chidambaram Stadium, Chepauk",P Dogra,substitute fielder,S Badrinath,caught
+548348,2012-05-01,Deccan Chargers,Pune Warriors,Barabati Stadium,DJ Harris,substitute fielder,RV Uthappa,caught
+548350,2012-05-02,Royal Challengers Bangalore,Kings XI Punjab,M Chinnaswamy Stadium,DA Miller,substitute fielder,CH Gayle,caught
+548355,2012-05-06,Mumbai Indians,Chennai Super Kings,Wankhede Stadium,WP Saha,substitute fielder,Harbhajan Singh,caught
+548375,2012-05-19,Pune Warriors,Kolkata Knight Riders,Subrata Roy Sahara Stadium,LR Shukla,substitute fielder,WD Parnell,caught
+548376,2012-05-20,Deccan Chargers,Royal Challengers Bangalore,"Rajiv Gandhi International Stadium, Uppal",KP Appanna,substitute fielder,JP Duminy,caught
+548378,2012-05-22,Delhi Daredevils,Kolkata Knight Riders,Subrata Roy Sahara Stadium,PJ Sangwan,substitute fielder,LRPL Taylor,caught
+598008,2013-04-11,Royal Challengers Bangalore,Kolkata Knight Riders,M Chinnaswamy Stadium,DT Christian,substitute fielder,EJG Morgan,caught
+598029,2013-04-24,Kolkata Knight Riders,Mumbai Indians,Eden Gardens,BB McCullum,substitute fielder,DR Smith,caught
+598071,2013-05-22,Rajasthan Royals,Sunrisers Hyderabad,Feroz Shah Kotla,R Shukla,substitute fielder,DJG Sammy,run out
+598073,2013-05-26,Chennai Super Kings,Mumbai Indians,Eden Gardens,AR Patel,substitute fielder,R Ashwin,caught
+729293,2014-04-21,Chennai Super Kings,Delhi Daredevils,Sheikh Zayed Stadium,WD Parnell,substitute fielder,BB McCullum,caught
+729309,2014-04-27,Delhi Daredevils,Mumbai Indians,Sharjah Cricket Stadium,AV Wankhade,substitute fielder,JP Duminy,caught
+733977,2014-05-04,Royal Challengers Bangalore,Sunrisers Hyderabad,M Chinnaswamy Stadium,MC Henriques,substitute fielder,Yuvraj Singh,caught
+733999,2014-05-11,Royal Challengers Bangalore,Rajasthan Royals,M Chinnaswamy Stadium,RR Rossouw,substitute fielder,STR Binny,caught
+734045,2014-05-28,Chennai Super Kings,Mumbai Indians,Brabourne Stadium,BR Dunk,substitute fielder,F du Plessis,caught
+829747,2015-04-23,Delhi Daredevils,Mumbai Indians,Feroz Shah Kotla,J Yadav,substitute fielder,Harbhajan Singh,caught
+829751,2015-04-25,Mumbai Indians,Sunrisers Hyderabad,Wankhede Stadium,HH Pandya,substitute fielder,RS Bopara,caught
+829773,2015-05-02,Sunrisers Hyderabad,Chennai Super Kings,"Rajiv Gandhi International Stadium, Uppal",B Aparajith,substitute fielder,GH Vihari,caught
+829817,2015-05-19,Chennai Super Kings,Mumbai Indians,Wankhede Stadium,UBT Chand,substitute fielder,P Negi,caught
+980963,2016-05-04,Kolkata Knight Riders,Kings XI Punjab,Eden Gardens,R Sathish,substitute fielder,DA Miller,caught
+980967,2016-05-06,Sunrisers Hyderabad,Gujarat Lions,"Rajiv Gandhi International Stadium, Uppal",V Shankar,substitute fielder,DJ Bravo,caught
+981009,2016-05-22,Kolkata Knight Riders,Sunrisers Hyderabad,Eden Gardens,R Sathish,substitute fielder,Yuvraj Singh,caught
+981015,2016-05-25,Sunrisers Hyderabad,Kolkata Knight Riders,Feroz Shah Kotla,V Shankar,substitute fielder,G Gambhir,caught
