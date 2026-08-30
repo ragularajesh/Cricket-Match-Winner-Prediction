@@ -1,1293 +1,783 @@
-import streamlit as st
+import os
 import joblib
 import pandas as pd
-import numpy as np
-import os
-
-
-# ============================================================
-# PAGE CONFIGURATION
-# ============================================================
+import streamlit as st
 
 st.set_page_config(
-    page_title="Cricket Winner Predictor",
+    page_title="Cricket Match Winner Prediction",
     page_icon="🏏",
-    layout="centered"
+    layout="wide"
 )
-
-st.title("🏏 Cricket Match Winner Predictor")
-
-st.markdown(
-    "Predict match win probabilities using the "
-    "**14-Feature Logistic Regression Model**."
-)
-
-
-# ============================================================
-# PROJECT PATHS
-# ============================================================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 MODEL_PATH = os.path.join(
     BASE_DIR,
-    "best_cricket_model_14f.pkl"
+    "models",
+    "cricket_winner_random_forest.pkl"
 )
 
-FEATURES_PATH = os.path.join(
+DATA_PATH = os.path.join(
     BASE_DIR,
-    "model_features.pkl"
+    "data",
+    "cleaned",
+    "combined_features.csv"
 )
 
-ENRICHED_PATH = os.path.join(
-    BASE_DIR,
-    "df_enriched.csv"
-)
-
-MATCH_PLAYERS_PATH = os.path.join(
+PLAYERS_PATH = os.path.join(
     BASE_DIR,
     "data",
     "cleaned",
     "match_players.csv"
 )
 
-SUBSTITUTES_PATH = os.path.join(
-    BASE_DIR,
-    "data",
-    "cleaned",
-    "substitutes.csv"
-)
-
-
-# ============================================================
-# LOAD MODEL + DATA
-# ============================================================
 
 @st.cache_resource
-def load_artifacts():
-
-    # --------------------------------------------------------
-    # ML MODEL
-    # --------------------------------------------------------
-
-    model = joblib.load(
-        MODEL_PATH
-    )
-
-    # --------------------------------------------------------
-    # MODEL FEATURES
-    # --------------------------------------------------------
-
-    features = joblib.load(
-        FEATURES_PATH
-    )
-
-    # --------------------------------------------------------
-    # ENRICHED DATASET
-    # --------------------------------------------------------
-
-    df_enriched = pd.read_csv(
-        ENRICHED_PATH
-    )
-
-    # --------------------------------------------------------
-    # MATCH PLAYER DATA
-    # --------------------------------------------------------
-
-    match_players = pd.read_csv(
-        MATCH_PLAYERS_PATH
-    )
-
-    # --------------------------------------------------------
-    # SUBSTITUTE DATA
-    # --------------------------------------------------------
-
-    substitutes = pd.read_csv(
-        SUBSTITUTES_PATH
-    )
-
-    # --------------------------------------------------------
-    # CONVERT DATES
-    # --------------------------------------------------------
-
-    df_enriched["date"] = pd.to_datetime(
-        df_enriched["date"],
-        errors="coerce"
-    )
-
-    match_players["date"] = pd.to_datetime(
-        match_players["date"],
-        errors="coerce"
-    )
-
-    substitutes["date"] = pd.to_datetime(
-        substitutes["date"],
-        errors="coerce"
-    )
-
-    # --------------------------------------------------------
-    # SORT DATA
-    # --------------------------------------------------------
-
-    df_enriched = df_enriched.sort_values(
-        "date"
-    ).reset_index(drop=True)
-
-    match_players = match_players.sort_values(
-        ["date", "team", "player"]
-    ).reset_index(drop=True)
-
-    substitutes = substitutes.sort_values(
-        ["date", "substitute_player"]
-    ).reset_index(drop=True)
-
-    return (
-        model,
-        features,
-        df_enriched,
-        match_players,
-        substitutes
-    )
+def load_model():
+    return joblib.load(MODEL_PATH)
 
 
-# ============================================================
-# LOAD EVERYTHING
-# ============================================================
+@st.cache_data
+def load_data():
+    data = pd.read_csv(DATA_PATH)
+    data["date"] = pd.to_datetime(data["date"], errors="coerce")
+    return data
 
-try:
 
-    (
-        model,
-        features,
-        df_enriched,
-        match_players,
-        substitutes
-    ) = load_artifacts()
+@st.cache_data
+def load_players():
+    if os.path.exists(PLAYERS_PATH):
+        data = pd.read_csv(PLAYERS_PATH)
+        data["date"] = pd.to_datetime(data["date"], errors="coerce")
+        return data
 
-except Exception as e:
+    return pd.DataFrame()
 
-    st.error(
-        f"""
-        Error loading project files:
 
-        {e}
+model = load_model()
+df = load_data()
+players = load_players()
 
-        Make sure these files exist:
+st.title("🏏 Cricket Match Winner Prediction")
+st.write("IPL • T20I • ODI • Test")
 
-        best_cricket_model_14f.pkl
-        model_features.pkl
-        df_enriched.csv
-        data/cleaned/match_players.csv
-        data/cleaned/substitutes.csv
-        """
-    )
+st.markdown("---")
 
+st.header("🏏 Match Format")
+
+selected_format = st.selectbox(
+    "Select Match Type",
+    ["IPL", "T20I", "ODI", "Test"]
+)
+
+format_df = df[
+    df["match_type"].astype(str).str.strip().str.lower()
+    == selected_format.lower()
+].copy()
+
+if format_df.empty:
+    st.error("No matches found for " + selected_format)
     st.stop()
 
-
-# ============================================================
-# VERIFY IMPORTANT COLUMNS
-# ============================================================
-
-required_player_columns = [
-    "match_id",
-    "date",
-    "team",
-    "player",
-    "status"
-]
-
-missing_player_columns = [
-    col
-    for col in required_player_columns
-    if col not in match_players.columns
-]
-
-if missing_player_columns:
-
-    st.error(
-        "match_players.csv is missing these columns: "
-        + ", ".join(missing_player_columns)
-    )
-
-    st.stop()
-
-
-required_substitute_columns = [
-    "match_id",
-    "date",
-    "team_1",
-    "team_2",
-    "substitute_player",
-    "event"
-]
-
-missing_substitute_columns = [
-    col
-    for col in required_substitute_columns
-    if col not in substitutes.columns
-]
-
-if missing_substitute_columns:
-
-    st.error(
-        "substitutes.csv is missing these columns: "
-        + ", ".join(missing_substitute_columns)
-    )
-
-    st.stop()
-
-
-# ============================================================
-# TEAM LIST
-# ============================================================
-
-all_teams = sorted(
-    list(
-        set(
-            df_enriched["team_1"]
-            .dropna()
-            .unique()
-        )
-        .union(
-            set(
-                df_enriched["team_2"]
-                .dropna()
-                .unique()
-            )
-        )
-    )
+st.success(
+    selected_format
+    + ": "
+    + str(len(format_df))
+    + " matches available"
 )
 
 
-# ============================================================
-# VENUE LIST
-# ============================================================
-
-all_venues = sorted(
-    df_enriched["venue"]
-    .dropna()
-    .unique()
-    .tolist()
+teams = sorted(
+    set(format_df["team_1"].dropna().astype(str))
+    | set(format_df["team_2"].dropna().astype(str))
 )
-
-
-# ============================================================
-# MATCH SETUP
-# ============================================================
 
 st.header("📋 Match Setup")
 
-
-# ============================================================
-# MATCH DATE
-# ============================================================
-
-available_dates = sorted(
-    df_enriched["date"]
-    .dropna()
-    .dt.date
-    .unique()
-)
-
-
-if available_dates:
-
-    selected_date = st.date_input(
-        "📅 Match Date",
-        value=available_dates[-1],
-        min_value=available_dates[0],
-        max_value=available_dates[-1],
-        format="DD/MM/YYYY"
-    )
-
-else:
-
-    selected_date = None
-
-    st.error(
-        "No valid match dates found in df_enriched.csv."
-    )
-
-    st.stop()
-
-
-# ============================================================
-# TEAM SELECTION
-# ============================================================
-
 col1, col2 = st.columns(2)
 
-
 with col1:
-
     team1 = st.selectbox(
-        "Select Team 1",
-        options=all_teams,
-        index=0,
-        key="team1"
+        "🏏 Team 1",
+        teams
     )
-
-
-remaining_teams = [
-    team
-    for team in all_teams
-    if team != team1
-]
-
 
 with col2:
+    team2_options = [
+        team for team in teams
+        if team != team1
+    ]
 
     team2 = st.selectbox(
-        "Select Team 2",
-        options=remaining_teams,
-        index=0,
-        key="team2"
+        "🏏 Team 2",
+        team2_options
     )
 
 
-# ============================================================
-# FIND PLAYER DATA FOR SELECTED DATE + TEAMS
-# ============================================================
+dates = sorted(
+    format_df["date"].dropna().dt.date.unique()
+)
 
-selected_match_players = match_players[
-    (
-        match_players["date"].dt.date
-        == selected_date
+if dates:
+    selected_date = st.date_input(
+        "📅 Match Date",
+        value=dates[-1],
+        min_value=dates[0],
+        max_value=dates[-1],
+        format="DD/MM/YYYY"
     )
-    &
-    (
-        match_players["team"].isin(
-            [team1, team2]
-        )
-    )
-].copy()
-
-
-# ============================================================
-# DISPLAY PLAYER INFORMATION
-# ============================================================
-
-st.markdown("---")
-
-st.header("👥 Players for Selected Match")
-
-
-if selected_match_players.empty:
-
-    st.warning(
-        "⚠️ No player information was found "
-        "for these teams on the selected date."
-    )
-
-    st.info(
-        "Try selecting the actual IPL match date "
-        "for which player data is available."
-    )
-
 else:
-
-    # --------------------------------------------------------
-    # TEAM 1
-    # --------------------------------------------------------
-
-    team1_players = selected_match_players[
-        selected_match_players["team"]
-        == team1
-    ].copy()
-
-    team1_official = team1_players[
-        team1_players["status"]
-        == "officially_listed"
-    ].copy()
-
-    team1_substitutes = team1_players[
-        team1_players["status"]
-        != "officially_listed"
-    ].copy()
+    selected_date = pd.Timestamp.today().date()
 
 
-    st.subheader(
-        f"🏏 {team1}"
-    )
-
-
-    if not team1_official.empty:
-
-        st.markdown(
-            "**👥 Officially Listed Players:**"
-        )
-
-        for i, player in enumerate(
-            team1_official["player"].tolist(),
-            start=1
-        ):
-
-            st.write(
-                f"{i}. {player}"
-            )
-
-    else:
-
-        st.info(
-            "No officially listed players found."
-        )
-
-
-    if not team1_substitutes.empty:
-
-        st.markdown(
-            "**🔄 Substitute Fielders Who Appeared:**"
-        )
-
-        for player in team1_substitutes[
-            "player"
-        ].tolist():
-
-            st.write(
-                f"• {player}"
-            )
-
-
-    # --------------------------------------------------------
-    # TEAM 2
-    # --------------------------------------------------------
-
-    team2_players = selected_match_players[
-        selected_match_players["team"]
-        == team2
-    ].copy()
-
-    team2_official = team2_players[
-        team2_players["status"]
-        == "officially_listed"
-    ].copy()
-
-    team2_substitutes = team2_players[
-        team2_players["status"]
-        != "officially_listed"
-    ].copy()
-
-
-    st.subheader(
-        f"🏏 {team2}"
-    )
-
-
-    if not team2_official.empty:
-
-        st.markdown(
-            "**👥 Officially Listed Players:**"
-        )
-
-        for i, player in enumerate(
-            team2_official["player"].tolist(),
-            start=1
-        ):
-
-            st.write(
-                f"{i}. {player}"
-            )
-
-    else:
-
-        st.info(
-            "No officially listed players found."
-        )
-
-
-    if not team2_substitutes.empty:
-
-        st.markdown(
-            "**🔄 Substitute Fielders Who Appeared:**"
-        )
-
-        for player in team2_substitutes[
-            "player"
-        ].tolist():
-
-            st.write(
-                f"• {player}"
-            )
-
-
-# ============================================================
-# SUBSTITUTE EVENTS
-# ============================================================
-
-match_substitutes = substitutes[
-    (
-        substitutes["date"].dt.date
-        == selected_date
-    )
-    &
-    (
-        (
-            (
-                substitutes["team_1"]
-                == team1
-            )
-            &
-            (
-                substitutes["team_2"]
-                == team2
-            )
-        )
-        |
-        (
-            (
-                substitutes["team_1"]
-                == team2
-            )
-            &
-            (
-                substitutes["team_2"]
-                == team1
-            )
-        )
-    )
-].copy()
-
-
-if not match_substitutes.empty:
-
-    st.markdown("---")
-
-    st.header("🔄 Substitute Events")
-
-
-    displayed_substitutes = (
-        match_substitutes[
-            [
-                "substitute_player",
-                "event"
-            ]
-        ]
-        .drop_duplicates()
-    )
-
-
-    for _, row in displayed_substitutes.iterrows():
-
-        st.write(
-            f"• **{row['substitute_player']}** "
-            f"— {row['event']}"
-        )
-
-
-# ============================================================
-# MATCH CONDITIONS
-# ============================================================
-
-st.markdown("---")
-
-st.header("🏟️ Match Conditions")
-
+venues = sorted(
+    format_df["venue"].dropna().astype(str).unique()
+)
 
 venue = st.selectbox(
-    "Select Venue",
-    options=all_venues,
-    key="venue"
+    "📍 Venue",
+    venues
 )
 
 
-# ============================================================
-# TOSS
-# ============================================================
+city_data = format_df[
+    format_df["venue"].astype(str) == str(venue)
+]
+
+cities = sorted(
+    city_data["city"].dropna().astype(str).unique()
+)
+
+if cities:
+    city = st.selectbox(
+        "🏙️ City",
+        cities
+    )
+else:
+    city = ""
+
+
+st.header("🪙 Toss Information")
 
 col3, col4 = st.columns(2)
 
-
 with col3:
-
     toss_winner = st.radio(
-        "🪙 Toss Winner",
-        options=[
-            team1,
-            team2
-        ],
-        key="toss_winner"
+        "Toss Winner",
+        [team1, team2]
     )
-
 
 with col4:
-
-    batted_first = st.radio(
-        "🏏 Team Batting First",
-        options=[
-            team1,
-            team2
-        ],
-        key="batted_first"
+    toss_decision = st.radio(
+        "Toss Decision",
+        ["bat", "field"]
     )
 
 
-# ============================================================
-# PREDICTION FUNCTION
-# ============================================================
+if toss_decision == "bat":
+    batting_first = toss_winner
+else:
+    if toss_winner == team1:
+        batting_first = team2
+    else:
+        batting_first = team1
 
-def predict_match_ui(
-    t1,
-    t2,
-    toss_w,
-    bat_1st,
-    ven,
-    prediction_date
-):
-
-    # ========================================================
-    # GET TEAM STATISTICS
-    # ========================================================
-
-    def get_latest_stats(
-        team,
-        venue_name,
-        prediction_date
-    ):
-
-        # ----------------------------------------------------
-        # IMPORTANT:
-        # Only use matches BEFORE prediction date.
-        # This prevents data leakage.
-        # ----------------------------------------------------
-
-        team_matches = df_enriched[
-            (
-                (
-                    df_enriched["team_1"]
-                    == team
-                )
-                |
-                (
-                    df_enriched["team_2"]
-                    == team
-                )
-            )
-            &
-            (
-                df_enriched["date"]
-                < pd.Timestamp(
-                    prediction_date
-                )
-            )
-        ].copy()
+st.info(
+    "🏏 Batting First: " + batting_first
+)
 
 
-        if team_matches.empty:
+def get_players(team):
 
-            return {
-                "win_rate": 0.5,
-                "recent_win_rate": 0.5,
-                "venue_win_rate": 0.5
-            }
+    if players.empty:
+        return pd.DataFrame()
+
+    result = players[
+        players["team"].astype(str).str.strip()
+        == str(team).strip()
+    ].copy()
+
+    if result.empty:
+        return result
+
+    exact_date = result[
+        result["date"].dt.date == selected_date
+    ]
+
+    if not exact_date.empty:
+        result = exact_date
+
+    venue_result = result[
+        result["venue"].astype(str).str.strip()
+        == str(venue).strip()
+    ]
+
+    if not venue_result.empty:
+        result = venue_result
+
+    return result.drop_duplicates(
+        subset=["player"]
+    )
 
 
-        # ----------------------------------------------------
-        # SORT CHRONOLOGICALLY
-        # ----------------------------------------------------
+team1_players = get_players(team1)
+team2_players = get_players(team2)
 
-        team_matches = team_matches.sort_values(
-            "date"
-        ).reset_index(
-            drop=True
+
+st.markdown("---")
+
+st.header("👥 Players")
+
+player_col1, player_col2 = st.columns(2)
+
+with player_col1:
+
+    st.subheader(team1)
+
+    if team1_players.empty:
+
+        st.warning(
+            "No player details found."
         )
 
+    else:
 
-        # ----------------------------------------------------
-        # LATEST MATCH
-        # ----------------------------------------------------
+        for number, player in enumerate(
+            team1_players["player"].dropna(),
+            start=1
+        ):
 
-        last_match = team_matches.iloc[-1]
-
-
-        if last_match["team_1"] == team:
-
-            wr = last_match[
-                "team_1_win_rate"
-            ]
-
-            rwr = last_match[
-                "team_1_recent_win_rate"
-            ]
-
-        else:
-
-            wr = last_match[
-                "team_2_win_rate"
-            ]
-
-            rwr = last_match[
-                "team_2_recent_win_rate"
-            ]
+            st.write(
+                str(number) + ". " + str(player)
+            )
 
 
-        # ----------------------------------------------------
-        # VENUE STATISTICS
-        # ----------------------------------------------------
+with player_col2:
 
-        venue_matches = team_matches[
-            team_matches["venue"]
-            == venue_name
-        ].copy()
+    st.subheader(team2)
+
+    if team2_players.empty:
+
+        st.warning(
+            "No player details found."
+        )
+
+    else:
+
+        for number, player in enumerate(
+            team2_players["player"].dropna(),
+            start=1
+        ):
+
+            st.write(
+                str(number) + ". " + str(player)
+            )
 
 
-        if not venue_matches.empty:
+def team_statistics(team):
 
-            v_last = venue_matches.iloc[-1]
+    history = format_df[
+        (
+            (format_df["team_1"] == team)
+            |
+            (format_df["team_2"] == team)
+        )
+        &
+        (
+            format_df["date"]
+            < pd.Timestamp(selected_date)
+        )
+    ].sort_values("date")
 
-
-            if v_last["team_1"] == team:
-
-                vwr = v_last[
-                    "team_1_venue_win_rate"
-                ]
-
-            else:
-
-                vwr = v_last[
-                    "team_2_venue_win_rate"
-                ]
-
-        else:
-
-            vwr = 0.5
-
+    if history.empty:
 
         return {
-            "win_rate": float(wr),
-            "recent_win_rate": float(rwr),
-            "venue_win_rate": float(vwr)
+            "win_rate": 0.5,
+            "recent": 0.5,
+            "venue": 0.5,
+            "city": 0.5
         }
 
+    last = history.iloc[-1]
 
-    # ========================================================
-    # TEAM 1 STATS
-    # ========================================================
+    if last["team_1"] == team:
 
-    t1_s = get_latest_stats(
-        t1,
-        ven,
-        prediction_date
-    )
+        win_rate = last["team_1_win_rate"]
+        recent = last["team_1_recent_win_rate"]
 
+    else:
 
-    # ========================================================
-    # TEAM 2 STATS
-    # ========================================================
-
-    t2_s = get_latest_stats(
-        t2,
-        ven,
-        prediction_date
-    )
+        win_rate = last["team_2_win_rate"]
+        recent = last["team_2_recent_win_rate"]
 
 
-    # ========================================================
-    # HEAD-TO-HEAD
-    # ========================================================
+    venue_history = history[
+        history["venue"] == venue
+    ]
 
-    h2h = df_enriched[
+    if venue_history.empty:
+
+        venue_rate = 0.5
+
+    else:
+
+        last_venue = venue_history.iloc[-1]
+
+        if last_venue["team_1"] == team:
+
+            venue_rate = last_venue[
+                "team_1_venue_win_rate"
+            ]
+
+        else:
+
+            venue_rate = last_venue[
+                "team_2_venue_win_rate"
+            ]
+
+
+    city_history = history[
+        history["city"] == city
+    ]
+
+    if city_history.empty:
+
+        city_rate = 0.5
+
+    else:
+
+        last_city = city_history.iloc[-1]
+
+        if last_city["team_1"] == team:
+
+            city_rate = last_city[
+                "team_1_city_win_rate"
+            ]
+
+        else:
+
+            city_rate = last_city[
+                "team_2_city_win_rate"
+            ]
+
+
+    values = [
+        win_rate,
+        recent,
+        venue_rate,
+        city_rate
+    ]
+
+    values = [
+        0.5 if pd.isna(value) else float(value)
+        for value in values
+    ]
+
+    return {
+        "win_rate": values[0],
+        "recent": values[1],
+        "venue": values[2],
+        "city": values[3]
+    }
+
+
+def h2h_statistics():
+
+    history = format_df[
         (
             (
-                (
-                    df_enriched["team_1"]
-                    == t1
-                )
+                (format_df["team_1"] == team1)
                 &
-                (
-                    df_enriched["team_2"]
-                    == t2
-                )
+                (format_df["team_2"] == team2)
             )
             |
             (
-                (
-                    df_enriched["team_1"]
-                    == t2
-                )
+                (format_df["team_1"] == team2)
                 &
-                (
-                    df_enriched["team_2"]
-                    == t1
-                )
+                (format_df["team_2"] == team1)
             )
         )
         &
         (
-            df_enriched["date"]
-            < pd.Timestamp(
-                prediction_date
-            )
+            format_df["date"]
+            < pd.Timestamp(selected_date)
         )
-    ].copy()
+    ].sort_values("date")
 
+    if history.empty:
+        return 0.5, 0.5
 
-    if not h2h.empty:
+    last = history.iloc[-1]
 
-        h2h = h2h.sort_values(
-            "date"
-        )
+    if last["team_1"] == team1:
 
-        h2h_last = h2h.iloc[-1]
-
-
-        if h2h_last["team_1"] == t1:
-
-            h2h_1 = h2h_last[
-                "team_1_h2h_win_rate"
-            ]
-
-            h2h_2 = h2h_last[
-                "team_2_h2h_win_rate"
-            ]
-
-        else:
-
-            h2h_1 = h2h_last[
-                "team_2_h2h_win_rate"
-            ]
-
-            h2h_2 = h2h_last[
-                "team_1_h2h_win_rate"
-            ]
+        h1 = last["team_1_h2h_win_rate"]
+        h2 = last["team_2_h2h_win_rate"]
 
     else:
 
-        h2h_1 = 0.5
-        h2h_2 = 0.5
+        h1 = last["team_2_h2h_win_rate"]
+        h2 = last["team_1_h2h_win_rate"]
 
+    if pd.isna(h1):
+        h1 = 0.5
 
-    # ========================================================
-    # 14 FEATURES
-    # ========================================================
+    if pd.isna(h2):
+        h2 = 0.5
 
-    match_data = {
+    return float(h1), float(h2)
 
-        "team_1_win_rate":
-            t1_s["win_rate"],
-
-        "team_2_win_rate":
-            t2_s["win_rate"],
-
-        "win_rate_difference":
-            t1_s["win_rate"]
-            -
-            t2_s["win_rate"],
-
-        "team_1_recent_win_rate":
-            t1_s["recent_win_rate"],
-
-        "team_2_recent_win_rate":
-            t2_s["recent_win_rate"],
-
-        "recent_form_difference":
-            t1_s["recent_win_rate"]
-            -
-            t2_s["recent_win_rate"],
-
-        "team_1_h2h_win_rate":
-            h2h_1,
-
-        "team_2_h2h_win_rate":
-            h2h_2,
-
-        "h2h_difference":
-            h2h_1
-            -
-            h2h_2,
-
-        "team_1_won_toss":
-            1
-            if toss_w == t1
-            else 0,
-
-        "team_1_batted_first":
-            1
-            if bat_1st == t1
-            else 0,
-
-        "team_1_venue_win_rate":
-            t1_s["venue_win_rate"],
-
-        "team_2_venue_win_rate":
-            t2_s["venue_win_rate"],
-
-        "venue_win_rate_difference":
-            t1_s["venue_win_rate"]
-            -
-            t2_s["venue_win_rate"]
-    }
-
-
-    # ========================================================
-    # MODEL INPUT
-    # ========================================================
-
-    input_df = pd.DataFrame(
-        [match_data]
-    )
-
-
-    # Make sure feature order is EXACTLY
-    # the same as training.
-
-    input_df = input_df[
-        features
-    ]
-
-
-    # ========================================================
-    # PREDICTION
-    # ========================================================
-
-    probabilities = model.predict_proba(
-        input_df
-    )[0]
-
-
-    return probabilities
-
-
-# ============================================================
-# PREDICT BUTTON
-# ============================================================
 
 st.markdown("---")
 
-
 if st.button(
-    "🚀 Predict Match Outcome",
+    "🚀 Predict Match Winner",
     use_container_width=True
 ):
 
     try:
 
-        probs = predict_match_ui(
-            team1,
-            team2,
-            toss_winner,
-            batted_first,
-            venue,
-            selected_date
+        s1 = team_statistics(team1)
+        s2 = team_statistics(team2)
+
+        h1, h2 = h2h_statistics()
+
+        team1_toss = 1 if toss_winner == team1 else 0
+
+        team1_batted = 1 if batting_first == team1 else 0
+
+        team1_toss_bat = (
+            1
+            if (
+                toss_winner == team1
+                and batting_first == team1
+            )
+            else 0
         )
 
 
-        # ====================================================
-        # PROBABILITIES
-        # ====================================================
+        input_data = pd.DataFrame([{
 
-        t1_prob = round(
-            probs[0] * 100,
+            "match_type": selected_format,
+
+            "team_1": team1,
+
+            "team_2": team2,
+
+            "venue": venue,
+
+            "city": city,
+
+            "toss_winner": toss_winner,
+
+            "toss_decision": toss_decision,
+
+            "team_1_win_rate":
+                s1["win_rate"],
+
+            "team_2_win_rate":
+                s2["win_rate"],
+
+            "win_rate_difference":
+                s1["win_rate"] - s2["win_rate"],
+
+            "team_1_recent_win_rate":
+                s1["recent"],
+
+            "team_2_recent_win_rate":
+                s2["recent"],
+
+            "recent_form_difference":
+                s1["recent"] - s2["recent"],
+
+            "team_1_h2h_win_rate":
+                h1,
+
+            "team_2_h2h_win_rate":
+                h2,
+
+            "h2h_difference":
+                h1 - h2,
+
+            "team_1_won_toss":
+                team1_toss,
+
+            "team_1_batted_first":
+                team1_batted,
+
+            "team_1_venue_win_rate":
+                s1["venue"],
+
+            "team_2_venue_win_rate":
+                s2["venue"],
+
+            "venue_win_rate_difference":
+                s1["venue"] - s2["venue"],
+
+            "team_1_city_win_rate":
+                s1["city"],
+
+            "team_2_city_win_rate":
+                s2["city"],
+
+            "city_win_rate_difference":
+                s1["city"] - s2["city"],
+
+            "team_1_toss_and_bat":
+                team1_toss_bat
+
+        }])
+
+
+        model_features = list(
+            model.feature_names_in_
+        )
+
+        input_data = input_data[
+            model_features
+        ]
+
+
+        probabilities = model.predict_proba(
+            input_data
+        )[0]
+
+
+        team1_probability = 0.0
+        team2_probability = 0.0
+
+
+        for class_value, probability in zip(
+            model.classes_,
+            probabilities
+        ):
+
+            if int(class_value) == 1:
+
+                team1_probability = float(
+                    probability
+                )
+
+            elif int(class_value) == 0:
+
+                team2_probability = float(
+                    probability
+                )
+
+
+        team1_percent = round(
+            team1_probability * 100,
             2
         )
 
-        t2_prob = round(
-            probs[1] * 100,
+        team2_percent = round(
+            team2_probability * 100,
             2
         )
 
 
-        # ====================================================
-        # WINNER
-        # ====================================================
-
-        if t1_prob > t2_prob:
+        if team1_probability > team2_probability:
 
             winner = team1
 
-        else:
+        elif team2_probability > team1_probability:
 
             winner = team2
 
+        else:
 
-        # ====================================================
-        # CONFIDENCE
-        # ====================================================
+            winner = "Too Close to Call"
 
-        confidence = max(
-            t1_prob,
-            t2_prob
+
+        confidence = round(
+            max(
+                team1_percent,
+                team2_percent
+            ),
+            2
         )
 
 
         if confidence >= 70:
 
-            confidence_level = "High"
+            level = "High 🟢"
 
         elif confidence >= 60:
 
-            confidence_level = "Medium"
+            level = "Medium 🟡"
 
         else:
 
-            confidence_level = "Low"
+            level = "Low 🔴"
 
-
-        # ====================================================
-        # RESULT
-        # ====================================================
 
         st.markdown("---")
 
-        st.header(
-            "🎯 Prediction Result"
-        )
-
+        st.header("🎯 Prediction Result")
 
         st.success(
-            f"🏆 Predicted Winner: **{winner}**"
+            "🏆 Predicted Winner: "
+            + winner
         )
 
 
-        # ====================================================
-        # PROBABILITY COLUMNS
-        # ====================================================
+        result1, result2 = st.columns(2)
 
-        col_a, col_b = st.columns(2)
-
-
-        with col_a:
+        with result1:
 
             st.metric(
-                f"{team1} Win Probability",
-                f"{t1_prob}%"
+                team1 + " Win Probability",
+                str(team1_percent) + "%"
             )
 
             st.progress(
-                t1_prob / 100
+                team1_probability
             )
 
 
-        with col_b:
+        with result2:
 
             st.metric(
-                f"{team2} Win Probability",
-                f"{t2_prob}%"
+                team2 + " Win Probability",
+                str(team2_percent) + "%"
             )
 
             st.progress(
-                t2_prob / 100
+                team2_probability
             )
 
 
-        # ====================================================
-        # CONFIDENCE
-        # ====================================================
-
-        st.markdown("---")
-
-        st.subheader(
-            "📊 Prediction Confidence"
-        )
-
+        st.subheader("📊 Confidence")
 
         st.metric(
-            "Confidence Level",
-            confidence_level
-        )
-
-
-        st.write(
-            f"Confidence Percentage: "
-            f"**{confidence}%**"
-        )
-
-
-        # ====================================================
-        # MODEL INFORMATION
-        # ====================================================
-
-        st.markdown("---")
-
-        st.subheader(
-            "🤖 Model Information"
-        )
-
-
-        st.write(
-            "**Model:** "
-            "14-Feature Logistic Regression"
+            "Confidence",
+            str(confidence) + "%"
         )
 
         st.write(
-            f"**Number of Features:** "
-            f"{len(features)}"
+            "Confidence Level: **"
+            + level
+            + "**"
         )
 
 
-        # ====================================================
-        # MATCH INFORMATION
-        # ====================================================
-
-        st.markdown("---")
-
-        st.subheader(
-            "🏏 Match Information"
-        )
-
+        st.subheader("🏏 Match Information")
 
         st.write(
-            f"**Date:** "
-            f"{selected_date.strftime('%d/%m/%Y')}"
+            "**Format:** "
+            + selected_format
         )
 
         st.write(
-            f"**Team 1:** "
-            f"{team1}"
-        )
-
-        st.write(
-            f"**Team 2:** "
-            f"{team2}"
-        )
-
-        st.write(
-            f"**Venue:** "
-            f"{venue}"
-        )
-
-        st.write(
-            f"**Toss Winner:** "
-            f"{toss_winner}"
-        )
-
-        st.write(
-            f"**Batting First:** "
-            f"{batted_first}"
-        )
-
-
-        # ====================================================
-        # PLAYER SUMMARY IN RESULT
-        # ====================================================
-
-        st.markdown("---")
-
-        st.subheader(
-            "👥 Selected Match Players"
-        )
-
-
-        if selected_match_players.empty:
-
-            st.info(
-                "No player information is available "
-                "for this date and team combination."
+            "**Date:** "
+            + selected_date.strftime(
+                "%d/%m/%Y"
             )
+        )
 
-        else:
+        st.write(
+            "**Team 1:** "
+            + team1
+        )
 
-            result_col1, result_col2 = st.columns(2)
+        st.write(
+            "**Team 2:** "
+            + team2
+        )
+
+        st.write(
+            "**Venue:** "
+            + venue
+        )
+
+        st.write(
+            "**City:** "
+            + city
+        )
+
+        st.write(
+            "**Toss Winner:** "
+            + toss_winner
+        )
+
+        st.write(
+            "**Toss Decision:** "
+            + toss_decision
+        )
+
+        st.write(
+            "**Batting First:** "
+            + batting_first
+        )
 
 
-            with result_col1:
+        st.markdown("---")
 
-                st.markdown(
-                    f"### 🏏 {team1}"
+        st.header("👥 Selected Match Players")
+
+        result_col1, result_col2 = st.columns(2)
+
+        with result_col1:
+
+            st.subheader(team1)
+
+            if team1_players.empty:
+
+                st.info(
+                    "No player details available."
                 )
 
+            else:
 
-                result_t1 = selected_match_players[
-                    selected_match_players["team"]
-                    == team1
-                ]
-
-
-                result_t1_official = result_t1[
-                    result_t1["status"]
-                    == "officially_listed"
-                ]
-
-
-                for i, player in enumerate(
-                    result_t1_official[
-                        "player"
-                    ].tolist(),
+                for number, player in enumerate(
+                    team1_players["player"].dropna(),
                     start=1
                 ):
 
                     st.write(
-                        f"{i}. {player}"
+                        str(number)
+                        + ". "
+                        + str(player)
                     )
 
 
-                result_t1_subs = result_t1[
-                    result_t1["status"]
-                    != "officially_listed"
-                ]
+        with result_col2:
 
+            st.subheader(team2)
 
-                if not result_t1_subs.empty:
+            if team2_players.empty:
 
-                    st.markdown(
-                        "**🔄 Substitutes:**"
-                    )
-
-                    for player in result_t1_subs[
-                        "player"
-                    ].tolist():
-
-                        st.write(
-                            f"• {player}"
-                        )
-
-
-            with result_col2:
-
-                st.markdown(
-                    f"### 🏏 {team2}"
+                st.info(
+                    "No player details available."
                 )
 
+            else:
 
-                result_t2 = selected_match_players[
-                    selected_match_players["team"]
-                    == team2
-                ]
-
-
-                result_t2_official = result_t2[
-                    result_t2["status"]
-                    == "officially_listed"
-                ]
-
-
-                for i, player in enumerate(
-                    result_t2_official[
-                        "player"
-                    ].tolist(),
+                for number, player in enumerate(
+                    team2_players["player"].dropna(),
                     start=1
                 ):
 
                     st.write(
-                        f"{i}. {player}"
+                        str(number)
+                        + ". "
+                        + str(player)
                     )
 
 
-                result_t2_subs = result_t2[
-                    result_t2["status"]
-                    != "officially_listed"
-                ]
-
-
-                if not result_t2_subs.empty:
-
-                    st.markdown(
-                        "**🔄 Substitutes:**"
-                    )
-
-                    for player in result_t2_subs[
-                        "player"
-                    ].tolist():
-
-                        st.write(
-                            f"• {player}"
-                        )
-
-
-    except Exception as e:
+    except Exception as error:
 
         st.error(
             "❌ Prediction failed."
         )
 
-        st.exception(e)
+        st.exception(error)
+
+
+st.markdown("---")
+
+st.caption(
+    "🏏 Cricket Match Winner Prediction "
+    "• IPL • T20I • ODI • Test "
+    "• Random Forest"
+)
