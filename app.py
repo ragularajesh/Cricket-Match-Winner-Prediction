@@ -2,6 +2,8 @@ import os
 import joblib
 import pandas as pd
 import streamlit as st
+import requests
+from streamlit.errors import StreamlitSecretNotFoundError
 
 st.set_page_config(
     page_title="Cricket Match Winner Prediction",
@@ -32,6 +34,10 @@ PLAYERS_PATH = os.path.join(
 )
 
 
+# ============================================================
+# LOAD MODEL AND DATA
+# ============================================================
+
 @st.cache_resource
 def load_model():
     return joblib.load(MODEL_PATH)
@@ -40,7 +46,10 @@ def load_model():
 @st.cache_data
 def load_data():
     data = pd.read_csv(DATA_PATH)
-    data["date"] = pd.to_datetime(data["date"], errors="coerce")
+    data["date"] = pd.to_datetime(
+        data["date"],
+        errors="coerce"
+    )
     return data
 
 
@@ -48,7 +57,10 @@ def load_data():
 def load_players():
     if os.path.exists(PLAYERS_PATH):
         data = pd.read_csv(PLAYERS_PATH)
-        data["date"] = pd.to_datetime(data["date"], errors="coerce")
+        data["date"] = pd.to_datetime(
+            data["date"],
+            errors="coerce"
+        )
         return data
 
     return pd.DataFrame()
@@ -58,11 +70,176 @@ model = load_model()
 df = load_data()
 players = load_players()
 
+
+# ============================================================
+# APPLICATION TITLE
+# ============================================================
+
 st.title("🏏 Cricket Match Winner Prediction")
 st.write("IPL • T20I • ODI • Test")
 
-st.markdown("---")
 
+# ============================================================
+# CRICKET DATABASE API — RECENT RESULTS
+# ============================================================
+
+st.markdown("---")
+st.header("🏏 Recent Cricket Results")
+
+st.write(
+    "Retrieve recent match results from the Cricket Database API."
+)
+
+
+def fetch_recent_results():
+    """
+    Fetch yesterday's cricket results using the API key
+    stored in Streamlit Cloud Secrets.
+    """
+
+    try:
+        api_key = st.secrets["CRICKET_API_KEY"]
+
+    except (StreamlitSecretNotFoundError, KeyError):
+        return (
+            None,
+            "API key not found. Configure CRICKET_API_KEY "
+            "in Streamlit Cloud Secrets."
+        )
+
+    url = "https://api.cricketdatabase.com/v1/results/yesterday"
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Accept": "application/json"
+    }
+
+    try:
+        response = requests.get(
+            url,
+            headers=headers,
+            timeout=20
+        )
+
+        response.raise_for_status()
+
+        payload = response.json()
+
+        matches = payload.get("data", [])
+
+        # Support responses where data contains a matches object.
+        if isinstance(matches, dict):
+            matches = matches.get("matches", [])
+
+        if not isinstance(matches, list):
+            return (
+                None,
+                "The API returned an unexpected response format."
+            )
+
+        return matches, None
+
+    except requests.RequestException as error:
+        return (
+            None,
+            f"Unable to retrieve cricket results: {error}"
+        )
+
+    except ValueError:
+        return (
+            None,
+            "The API returned invalid JSON."
+        )
+
+
+if st.button(
+    "🔄 Fetch Recent Cricket Results",
+    use_container_width=True
+):
+
+    with st.spinner("Fetching recent cricket results..."):
+
+        matches, error = fetch_recent_results()
+
+    if error:
+
+        st.error(error)
+
+    elif not matches:
+
+        st.info(
+            "No recent match results were returned by the API."
+        )
+
+    else:
+
+        st.success(
+            f"Retrieved {len(matches)} match result(s)."
+        )
+
+        for match in matches:
+
+            with st.container(border=True):
+
+                competition = match.get(
+                    "competition",
+                    "Cricket Match"
+                )
+
+                st.subheader(str(competition))
+
+                match_date = match.get(
+                    "date",
+                    "Not available"
+                )
+
+                match_format = match.get(
+                    "format",
+                    "Not available"
+                )
+
+                st.caption(
+                    f"Date: {match_date} | Format: {match_format}"
+                )
+
+                teams = match.get("teams", [])
+
+                if isinstance(teams, list):
+
+                    for team in teams:
+
+                        team_name = team.get(
+                            "name",
+                            team.get("team", "Unknown Team")
+                        )
+
+                        score = team.get(
+                            "score",
+                            "Score unavailable"
+                        )
+
+                        overs = team.get("overs")
+
+                        score_text = f"**{team_name}:** {score}"
+
+                        if overs:
+                            score_text += f" ({overs} overs)"
+
+                        st.markdown(score_text)
+
+                result = match.get(
+                    "result",
+                    "Result not available"
+                )
+
+                st.write(f"**Result:** {result}")
+
+
+# ============================================================
+# MATCH FORMAT
+# ============================================================
+
+st.markdown("---")
 st.header("🏏 Match Format")
 
 selected_format = st.selectbox(
@@ -87,6 +264,10 @@ st.success(
 )
 
 
+# ============================================================
+# TEAM SELECTION
+# ============================================================
+
 teams = sorted(
     set(format_df["team_1"].dropna().astype(str))
     | set(format_df["team_2"].dropna().astype(str))
@@ -103,6 +284,7 @@ with col1:
     )
 
 with col2:
+
     team2_options = [
         team for team in teams
         if team != team1
@@ -114,11 +296,16 @@ with col2:
     )
 
 
+# ============================================================
+# DATE AND VENUE
+# ============================================================
+
 dates = sorted(
     format_df["date"].dropna().dt.date.unique()
 )
 
 if dates:
+
     selected_date = st.date_input(
         "📅 Match Date",
         value=dates[-1],
@@ -126,7 +313,9 @@ if dates:
         max_value=dates[-1],
         format="DD/MM/YYYY"
     )
+
 else:
+
     selected_date = pd.Timestamp.today().date()
 
 
@@ -149,25 +338,34 @@ cities = sorted(
 )
 
 if cities:
+
     city = st.selectbox(
         "🏙️ City",
         cities
     )
+
 else:
+
     city = ""
 
+
+# ============================================================
+# TOSS INFORMATION
+# ============================================================
 
 st.header("🪙 Toss Information")
 
 col3, col4 = st.columns(2)
 
 with col3:
+
     toss_winner = st.radio(
         "Toss Winner",
         [team1, team2]
     )
 
 with col4:
+
     toss_decision = st.radio(
         "Toss Decision",
         ["bat", "field"]
@@ -175,17 +373,25 @@ with col4:
 
 
 if toss_decision == "bat":
+
     batting_first = toss_winner
+
 else:
+
     if toss_winner == team1:
         batting_first = team2
     else:
         batting_first = team1
 
+
 st.info(
     "🏏 Batting First: " + batting_first
 )
 
+
+# ============================================================
+# PLAYER INFORMATION
+# ============================================================
 
 def get_players(team):
 
@@ -225,7 +431,6 @@ team2_players = get_players(team2)
 
 
 st.markdown("---")
-
 st.header("👥 Players")
 
 player_col1, player_col2 = st.columns(2)
@@ -236,9 +441,7 @@ with player_col1:
 
     if team1_players.empty:
 
-        st.warning(
-            "No player details found."
-        )
+        st.warning("No player details found.")
 
     else:
 
@@ -258,9 +461,7 @@ with player_col2:
 
     if team2_players.empty:
 
-        st.warning(
-            "No player details found."
-        )
+        st.warning("No player details found.")
 
     else:
 
@@ -273,6 +474,10 @@ with player_col2:
                 str(number) + ". " + str(player)
             )
 
+
+# ============================================================
+# TEAM STATISTICS
+# ============================================================
 
 def team_statistics(team):
 
@@ -311,6 +516,8 @@ def team_statistics(team):
         recent = last["team_2_recent_win_rate"]
 
 
+    # Venue statistics
+
     venue_history = history[
         history["venue"] == venue
     ]
@@ -335,6 +542,8 @@ def team_statistics(team):
                 "team_2_venue_win_rate"
             ]
 
+
+    # City statistics
 
     city_history = history[
         history["city"] == city
@@ -380,6 +589,10 @@ def team_statistics(team):
         "city": values[3]
     }
 
+
+# ============================================================
+# HEAD-TO-HEAD STATISTICS
+# ============================================================
 
 def h2h_statistics():
 
@@ -427,6 +640,10 @@ def h2h_statistics():
 
     return float(h1), float(h2)
 
+
+# ============================================================
+# RANDOM FOREST MATCH WINNER PREDICTION
+# ============================================================
 
 st.markdown("---")
 
@@ -529,6 +746,8 @@ if st.button(
         }])
 
 
+        # Match the trained model's feature order.
+
         model_features = list(
             model.feature_names_in_
         )
@@ -537,6 +756,8 @@ if st.button(
             model_features
         ]
 
+
+        # Generate prediction probabilities.
 
         probabilities = model.predict_proba(
             input_data
@@ -576,6 +797,8 @@ if st.button(
         )
 
 
+        # Determine predicted winner.
+
         if team1_probability > team2_probability:
 
             winner = team1
@@ -611,8 +834,9 @@ if st.button(
             level = "Low 🔴"
 
 
-        st.markdown("---")
+        # Display prediction.
 
+        st.markdown("---")
         st.header("🎯 Prediction Result")
 
         st.success(
@@ -647,6 +871,8 @@ if st.button(
             )
 
 
+        # Display confidence.
+
         st.subheader("📊 Confidence")
 
         st.metric(
@@ -661,6 +887,8 @@ if st.button(
         )
 
 
+        # Display match information.
+
         st.subheader("🏏 Match Information")
 
         st.write(
@@ -670,9 +898,7 @@ if st.button(
 
         st.write(
             "**Date:** "
-            + selected_date.strftime(
-                "%d/%m/%Y"
-            )
+            + selected_date.strftime("%d/%m/%Y")
         )
 
         st.write(
@@ -711,8 +937,9 @@ if st.button(
         )
 
 
-        st.markdown("---")
+        # Display selected players.
 
+        st.markdown("---")
         st.header("👥 Selected Match Players")
 
         result_col1, result_col2 = st.columns(2)
@@ -773,6 +1000,10 @@ if st.button(
 
         st.exception(error)
 
+
+# ============================================================
+# FOOTER
+# ============================================================
 
 st.markdown("---")
 
