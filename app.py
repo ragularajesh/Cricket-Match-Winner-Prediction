@@ -3,6 +3,11 @@ import joblib
 import pandas as pd
 import streamlit as st
 import requests
+import plotly.express as px
+import plotly.graph_objects as go
+from sklearn.base import clone
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
 from streamlit.errors import StreamlitSecretNotFoundError
 
 st.set_page_config(
@@ -77,6 +82,16 @@ players = load_players()
 
 st.title("🏏 Cricket Match Winner Prediction")
 st.write("IPL • T20I • ODI • Test")
+
+# Dark navy / cyan analytics theme
+st.markdown("""
+<style>
+    .stApp { background-color: #07111f; }
+    div[data-testid="stMetric"] { background: #101f33; border: 1px solid #1f3854; padding: 14px; border-radius: 14px; }
+    div[data-testid="stVerticalBlockBorderWrapper"] { border-color: #1f3854 !important; }
+    h1, h2, h3 { color: #e6f2ff; }
+</style>
+""", unsafe_allow_html=True)
 
 
 # ============================================================
@@ -262,6 +277,200 @@ st.success(
     + str(len(format_df))
     + " matches available"
 )
+
+
+# ============================================================
+# DATA SCIENCE ANALYTICS — SIX CHARTS
+# ============================================================
+
+
+def _find_column(data, candidates):
+    """Return the first existing column from a candidate list."""
+    for name in candidates:
+        if name in data.columns:
+            return name
+    return None
+
+
+def _get_winner_series(data):
+    """Derive winner names from winner column or team-1 win flag when available."""
+    winner_col = _find_column(data, [
+        "winner", "match_winner", "winning_team", "winner_name", "match_result_winner"
+    ])
+    if winner_col:
+        values = data[winner_col]
+        # If winner is encoded 0/1, map to team_2/team_1 respectively.
+        numeric = pd.to_numeric(values, errors="coerce")
+        if numeric.notna().mean() > 0.8 and set(numeric.dropna().unique()).issubset({0, 1}):
+            return numeric.map({1: data["team_1"], 0: data["team_2"]})
+        return values.astype(str)
+
+    flag_col = _find_column(data, [
+        "team_1_won", "team1_won", "team_1_win", "team1_win", "team_1_winner"
+    ])
+    if flag_col and "team_1" in data.columns and "team_2" in data.columns:
+        flag = pd.to_numeric(data[flag_col], errors="coerce")
+        return pd.Series(
+            [data.iloc[i]["team_1"] if value == 1 else data.iloc[i]["team_2"] if value == 0 else None
+             for i, value in enumerate(flag)],
+            index=data.index,
+            dtype="object"
+        )
+    return None
+
+
+def _chart_layout(fig, title=None):
+    fig.update_layout(
+        title=title,
+        paper_bgcolor="#0b1728",
+        plot_bgcolor="#0b1728",
+        font=dict(color="#d9e9f8", family="Arial"),
+        margin=dict(l=20, r=20, t=55, b=35),
+        legend=dict(bgcolor="rgba(0,0,0,0)"),
+        xaxis=dict(gridcolor="#20334b", zerolinecolor="#20334b"),
+        yaxis=dict(gridcolor="#20334b", zerolinecolor="#20334b"),
+    )
+    return fig
+
+
+with st.expander("📊 Data Science Analytics Dashboard", expanded=True):
+    st.markdown("### Historical match insights")
+    st.caption("Interactive charts are calculated from the selected match format and available dataset columns.")
+
+    analytics_df = format_df.copy()
+    winner_series = _get_winner_series(analytics_df)
+    if winner_series is not None:
+        analytics_df["_winner_for_charts"] = winner_series
+
+    # Summary KPI cards
+    total_matches = len(analytics_df)
+    kpi1, kpi2, kpi3 = st.columns(3)
+    kpi1.metric("Matches in selected format", f"{total_matches:,}")
+    kpi2.metric("Teams represented", str(len(set(analytics_df.get("team_1", pd.Series(dtype=str)).dropna()) | set(analytics_df.get("team_2", pd.Series(dtype=str)).dropna()))))
+    kpi3.metric("Date range", str(analytics_df["date"].dt.year.dropna().min()) + " – " + str(analytics_df["date"].dt.year.dropna().max()) if analytics_df["date"].notna().any() else "Unavailable")
+
+    chart_col1, chart_col2 = st.columns(2)
+
+    # 1. Team-wise wins
+    with chart_col1:
+        st.markdown("#### 🏆 Team-wise Wins")
+        if winner_series is not None and analytics_df["_winner_for_charts"].notna().any():
+            wins = analytics_df["_winner_for_charts"].dropna().value_counts().head(15).sort_values()
+            fig = px.bar(wins, x=wins.values, y=wins.index, orientation="h", labels={"x": "Wins", "y": "Team"})
+            fig.update_traces(marker_color="#27b7f5", marker_line_color="#70d9ff", marker_line_width=0.5)
+            st.plotly_chart(_chart_layout(fig), use_container_width=True)
+        else:
+            st.info("Winner/team-1 outcome columns were not detected in this dataset, so team wins cannot be calculated safely.")
+
+    # 2. Selected-team win percentage donut
+    with chart_col2:
+        st.markdown("#### 🍩 Win Percentage")
+        if winner_series is not None and "team_1" in analytics_df.columns and "team_2" in analytics_df.columns:
+            available_teams = sorted(set(analytics_df["team_1"].dropna().astype(str)) | set(analytics_df["team_2"].dropna().astype(str)))
+            if available_teams:
+                donut_team = st.selectbox("Team for win/loss breakdown", available_teams, key="analytics_donut_team")
+                played = analytics_df[(analytics_df["team_1"].astype(str) == donut_team) | (analytics_df["team_2"].astype(str) == donut_team)]
+                team_wins = int(analytics_df["_winner_for_charts"].astype(str).eq(donut_team).sum())
+                completed = int(played["_winner_for_charts"].notna().sum())
+                team_losses = max(completed - team_wins, 0)
+                if completed > 0:
+                    fig = px.pie(names=["Wins", "Losses"], values=[team_wins, team_losses], hole=0.62, color_discrete_sequence=["#26b8f2", "#16d6b0"])
+                    fig.update_traces(textposition="inside", textinfo="label+percent", marker=dict(line=dict(color="#0b1728", width=2)))
+                    fig.update_layout(showlegend=True, annotations=[dict(text=f"{team_wins}/{completed}<br>Matches", x=0.5, y=0.5, showarrow=False, font=dict(color="#d9e9f8", size=15))])
+                    st.plotly_chart(_chart_layout(fig), use_container_width=True)
+                else:
+                    st.info("No completed match winner records found for this team.")
+            else:
+                st.info("Team names are unavailable for the win percentage chart.")
+        else:
+            st.info("Winner and team columns are required for the win-percentage chart.")
+
+    # 3. Match trends by year
+    with st.container(border=True):
+        st.markdown("#### 📈 Match Trends by Year")
+        if analytics_df["date"].notna().any():
+            yearly = analytics_df.dropna(subset=["date"]).groupby(analytics_df.dropna(subset=["date"])["date"].dt.year).size().reset_index(name="Matches")
+            yearly.columns = ["Year", "Matches"]
+            fig = px.line(yearly, x="Year", y="Matches", markers=True)
+            fig.update_traces(line_color="#28c5f5", marker_color="#80e5ff", line_width=3)
+            st.plotly_chart(_chart_layout(fig), use_container_width=True)
+        else:
+            st.info("Date information is unavailable for match trends.")
+
+    # 4. Batting first vs chasing
+    chart_col3, chart_col4 = st.columns(2)
+    with chart_col3:
+        st.markdown("#### 🏏 Batting First vs Chasing")
+        toss_dec_col = _find_column(analytics_df, ["toss_decision", "toss_decision_text", "decision"])
+        if winner_series is not None and toss_dec_col and "team_1" in analytics_df.columns and "team_2" in analytics_df.columns:
+            toss_winner_col = _find_column(analytics_df, ["toss_winner"])
+            first_batting_team = analytics_df[toss_winner_col].where(analytics_df[toss_dec_col].astype(str).str.lower().eq("bat")) if toss_winner_col else None
+            if first_batting_team is not None:
+                first_batting_team = first_batting_team.where(analytics_df[toss_dec_col].astype(str).str.lower().eq("bat"), analytics_df["team_1"].where(analytics_df[toss_dec_col].astype(str).str.lower().eq("field"), None))
+                # If toss decision was field, the other team bats first.
+                field_rows = analytics_df[toss_dec_col].astype(str).str.lower().eq("field")
+                first_batting_team.loc[field_rows] = analytics_df.loc[field_rows, "team_2"].where(analytics_df.loc[field_rows, "toss_winner"].eq(analytics_df.loc[field_rows, "team_1"]), analytics_df.loc[field_rows, "team_1"])
+                first_won = analytics_df["_winner_for_charts"].eq(first_batting_team)
+                counts = pd.DataFrame({"Innings": ["Batting first", "Chasing"], "Wins": [int(first_won.sum()), int((~first_won & analytics_df["_winner_for_charts"].notna()).sum())]})
+                fig = px.bar(counts, x="Innings", y="Wins", color="Innings", color_discrete_sequence=["#26b8f2", "#16d6b0"])
+                st.plotly_chart(_chart_layout(fig), use_container_width=True)
+            else:
+                st.info("Toss-winner information is missing, so batting order cannot be derived.")
+        else:
+            st.info("This chart needs toss decision, toss winner, teams and match-winner information.")
+
+    # 5. Feature importance
+    with chart_col4:
+        st.markdown("#### 🤖 Random Forest Feature Importance")
+        try:
+            feature_names = list(model.feature_names_in_)
+            importance_values = list(model.feature_importances_)
+            importance_df = pd.DataFrame({"Feature": feature_names, "Importance": importance_values}).sort_values("Importance", ascending=True).tail(15)
+            fig = px.bar(importance_df, x="Importance", y="Feature", orientation="h")
+            fig.update_traces(marker_color="#22c4f4")
+            st.plotly_chart(_chart_layout(fig), use_container_width=True)
+        except Exception:
+            st.info("Feature importance is not available for this model type.")
+
+    # 6. Confusion matrix from holdout validation
+    with st.container(border=True):
+        st.markdown("#### 🧩 Confusion Matrix — Holdout Evaluation")
+        target_col = _find_column(analytics_df, [
+            "team_1_won", "team1_won", "team_1_win", "team1_win", "team_1_winner",
+            "winner_encoded", "target", "label", "result_binary"
+        ])
+        model_features = list(getattr(model, "feature_names_in_", []))
+        if target_col and model_features and all(feature in analytics_df.columns for feature in model_features):
+            eval_df = analytics_df.dropna(subset=model_features + [target_col]).copy()
+            y = pd.to_numeric(eval_df[target_col], errors="coerce")
+            eval_df = eval_df.loc[y.notna()]
+            y = y.loc[y.notna()].astype(int)
+            if len(eval_df) >= 20 and y.nunique() == 2:
+                try:
+                    X = eval_df[model_features]
+                    X_train, X_test, y_train, y_test = train_test_split(
+                        X, y, test_size=0.25, random_state=42, stratify=y
+                    )
+                    evaluation_model = clone(model)
+                    evaluation_model.fit(X_train, y_train)
+                    y_pred = evaluation_model.predict(X_test)
+                    matrix = confusion_matrix(y_test, y_pred, labels=[0, 1])
+                    matrix_fig = px.imshow(
+                        matrix, text_auto=True, x=["Predicted Team 2", "Predicted Team 1"],
+                        y=["Actual Team 2", "Actual Team 1"], color_continuous_scale=[[0, "#0b1728"], [0.5, "#14658d"], [1, "#26c6f5"]]
+                    )
+                    st.plotly_chart(_chart_layout(matrix_fig), use_container_width=True)
+                    metric_cols = st.columns(4)
+                    metric_cols[0].metric("Holdout Accuracy", f"{accuracy_score(y_test, y_pred):.1%}")
+                    metric_cols[1].metric("Precision", f"{precision_score(y_test, y_pred, zero_division=0):.3f}")
+                    metric_cols[2].metric("Recall", f"{recall_score(y_test, y_pred, zero_division=0):.3f}")
+                    metric_cols[3].metric("F1-score", f"{f1_score(y_test, y_pred, zero_division=0):.3f}")
+                except Exception as evaluation_error:
+                    st.warning("Holdout evaluation could not run with the available data/model features: " + str(evaluation_error))
+            else:
+                st.info("Not enough valid two-class target records for a holdout confusion matrix.")
+        else:
+            st.info("Confusion matrix requires a recognized binary target column and all trained model features in the dataset. The app will not fabricate evaluation values.")
 
 
 # ============================================================
