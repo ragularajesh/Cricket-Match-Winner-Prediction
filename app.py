@@ -1,35 +1,1061 @@
-
 import os
 import joblib
 import pandas as pd
 import streamlit as st
+import requests
+import plotly.express as px
+from sklearn.base import clone
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
+from streamlit.errors import StreamlitSecretNotFoundError
 
+st.set_page_config(
+    page_title="Cricket Match Winner Prediction",
+    page_icon="🏏",
+    layout="wide"
+)
 
-st.title("🏏 Cricket Match Winner Prediction")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+MODEL_PATH = os.path.join(
+    BASE_DIR,
+    "models",
+    "cricket_winner_random_forest.pkl"
+)
 
+DATA_PATH = os.path.join(
+    BASE_DIR,
+    "data",
+    "cleaned",
+    "combined_features.csv"
+)
 
-
-        st.subheader("🏏 Match Information")
-
-        st.write("**Format:** " + selected_format)
-        st.write("**Date:** " + selected_date.strftime("%d/%m/%Y"))
-        st.write("**Team 1:** " + team1)
-        st.write("**Team 2:** " + team2)
-        st.write("**Venue:** " + venue)
-        st.write("**City:** " + city)
-        st.write("**Toss Winner:** " + toss_winner)
-        st.write("**Toss Decision:** " + toss_decision)
-        st.write("**Batting First:** " + batting_first)
+PLAYERS_PATH = os.path.join(
+    BASE_DIR,
+    "data",
+    "cleaned",
+    "match_players.csv"
+)
 
 
 # ============================================================
-# FOOTER
+# LOAD MODEL AND DATA
+# ============================================================
+
+@st.cache_resource
+def load_model():
+    return joblib.load(MODEL_PATH)
+
+
+@st.cache_data
+def load_data():
+    data = pd.read_csv(DATA_PATH)
+    data["date"] = pd.to_datetime(
+        data["date"],
+        errors="coerce"
+    )
+    return data
+
+
+@st.cache_data
+def load_players():
+    if os.path.exists(PLAYERS_PATH):
+        data = pd.read_csv(PLAYERS_PATH)
+        data["date"] = pd.to_datetime(
+            data["date"],
+            errors="coerce"
+        )
+        return data
+
+    return pd.DataFrame()
+
+
+model = load_model()
+df = load_data()
+players = load_players()
+
+
+# ============================================================
+# APPLICATION TITLE
+# ============================================================
+
+st.title("🏏 Cricket Match Winner Prediction")
+st.write("IPL • T20I • ODI • Test")
+
+# Light theme with black text
+st.markdown("""
+<style>
+    .stApp { background-color: #f5f7fa; color: #000000; }
+    p, label, span, div, li { color: #000000; }
+    h1, h2, h3, h4, h5, h6 { color: #000000 !important; }
+    div[data-testid="stMetric"] { background: #ffffff; border: 1px solid #d6dce5; padding: 14px; border-radius: 14px; }
+    div[data-testid="stVerticalBlockBorderWrapper"] { border-color: #d6dce5 !important; }
+</style>
+""", unsafe_allow_html=True)
+
+
+# ============================================================
+# CRICKET DATABASE API — RECENT RESULTS
 # ============================================================
 
 st.markdown("---")
-st.caption("🏏 Cricket Match Winner Prediction • IPL • T20I • ODI • Test • Random Forest")        
-st.subheader("🏏 Match Information")
+st.header("🏏 Recent Cricket Results")
+
+st.write(
+    "Retrieve recent match results from the Cricket Database API."
+)
+
+
+def fetch_recent_results():
+    """
+    Fetch yesterday's cricket results using the API key
+    stored in Streamlit Cloud Secrets.
+    """
+
+    try:
+        api_key = st.secrets["CRICKET_API_KEY"]
+
+    except (StreamlitSecretNotFoundError, KeyError):
+        return (
+            None,
+            "API key not found. Configure CRICKET_API_KEY "
+            "in Streamlit Cloud Secrets."
+        )
+
+    url = "https://api.cricketdatabase.com/v1/results/yesterday"
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Accept": "application/json"
+    }
+
+    try:
+        response = requests.get(
+            url,
+            headers=headers,
+            timeout=20
+        )
+
+        response.raise_for_status()
+
+        payload = response.json()
+
+        matches = payload.get("data", [])
+
+        # Support responses where data contains a matches object.
+        if isinstance(matches, dict):
+            matches = matches.get("matches", [])
+
+        if not isinstance(matches, list):
+            return (
+                None,
+                "The API returned an unexpected response format."
+            )
+
+        return matches, None
+
+    except requests.RequestException as error:
+        return (
+            None,
+            f"Unable to retrieve cricket results: {error}"
+        )
+
+    except ValueError:
+        return (
+            None,
+            "The API returned invalid JSON."
+        )
+
+
+if st.button(
+    "🔄 Fetch Recent Cricket Results",
+    use_container_width=True
+):
+
+    with st.spinner("Fetching recent cricket results..."):
+
+        matches, error = fetch_recent_results()
+
+    if error:
+
+        st.error(error)
+
+    elif not matches:
+
+        st.info(
+            "No recent match results were returned by the API."
+        )
+
+    else:
+
+        st.success(
+            f"Retrieved {len(matches)} match result(s)."
+        )
+
+        for match in matches:
+
+            with st.container(border=True):
+
+                competition = match.get(
+                    "competition",
+                    "Cricket Match"
+                )
+
+                st.subheader(str(competition))
+
+                match_date = match.get(
+                    "date",
+                    "Not available"
+                )
+
+                match_format = match.get(
+                    "format",
+                    "Not available"
+                )
+
+                st.caption(
+                    f"Date: {match_date} | Format: {match_format}"
+                )
+
+                teams = match.get("teams", [])
+
+                if isinstance(teams, list):
+
+                    for team in teams:
+
+                        team_name = team.get(
+                            "name",
+                            team.get("team", "Unknown Team")
+                        )
+
+                        score = team.get(
+                            "score",
+                            "Score unavailable"
+                        )
+
+                        overs = team.get("overs")
+
+                        score_text = f"**{team_name}:** {score}"
+
+                        if overs:
+                            score_text += f" ({overs} overs)"
+
+                        st.markdown(score_text)
+
+                result = match.get(
+                    "result",
+                    "Result not available"
+                )
+
+                st.write(f"**Result:** {result}")
+
+
+# ============================================================
+# MATCH FORMAT
+# ============================================================
+
+st.markdown("---")
+st.header("🏏 Match Format")
+
+selected_format = st.selectbox(
+    "Select Match Type",
+    ["IPL", "T20I", "ODI", "Test"]
+)
+
+format_df = df[
+    df["match_type"].astype(str).str.strip().str.lower()
+    == selected_format.lower()
+].copy()
+
+if format_df.empty:
+    st.error("No matches found for " + selected_format)
+    st.stop()
+
+st.success(
+    selected_format
+    + ": "
+    + str(len(format_df))
+    + " matches available"
+)
+
+
+# ============================================================
+# DATA SCIENCE ANALYTICS — SIX CHARTS
+# ============================================================
+
+
+def _find_column(data, candidates):
+    """Return the first existing column from a candidate list."""
+    for name in candidates:
+        if name in data.columns:
+            return name
+    return None
+
+
+def _get_winner_series(data):
+    """Derive winner names from winner column or team-1 win flag when available."""
+    winner_col = _find_column(data, [
+        "winner", "match_winner", "winning_team", "winner_name", "match_result_winner"
+    ])
+    if winner_col:
+        values = data[winner_col]
+        # If winner is encoded 0/1, map to team_2/team_1 respectively.
+        numeric = pd.to_numeric(values, errors="coerce")
+        if numeric.notna().mean() > 0.8 and set(numeric.dropna().unique()).issubset({0, 1}):
+            return numeric.map({1: data["team_1"], 0: data["team_2"]})
+        return values.astype(str)
+
+    flag_col = _find_column(data, [
+        "team_1_won", "team1_won", "team_1_win", "team1_win", "team_1_winner"
+    ])
+    if flag_col and "team_1" in data.columns and "team_2" in data.columns:
+        flag = pd.to_numeric(data[flag_col], errors="coerce")
+        return pd.Series(
+            [data.iloc[i]["team_1"] if value == 1 else data.iloc[i]["team_2"] if value == 0 else None
+             for i, value in enumerate(flag)],
+            index=data.index,
+            dtype="object"
+        )
+    return None
+
+
+def _chart_layout(fig, title=None):
+    fig.update_layout(
+        title=title,
+        paper_bgcolor="#ffffff",
+        plot_bgcolor="#ffffff",
+        font=dict(color="#000000", family="Arial"),
+        margin=dict(l=20, r=20, t=55, b=35),
+        legend=dict(bgcolor="rgba(255,255,255,0)"),
+        xaxis=dict(gridcolor="#d9dfe8", zerolinecolor="#d9dfe8", color="#000000"),
+        yaxis=dict(gridcolor="#d9dfe8", zerolinecolor="#d9dfe8", color="#000000"),
+    )
+    return fig
+
+
+with st.expander("📊 Data Science Analytics Dashboard", expanded=True):
+    st.markdown("### Historical match insights")
+    st.caption("Interactive charts are calculated from the selected match format and available dataset columns.")
+
+    analytics_df = format_df.copy()
+    winner_series = _get_winner_series(analytics_df)
+    if winner_series is not None:
+        analytics_df["_winner_for_charts"] = winner_series
+
+    # Summary KPI cards
+    total_matches = len(analytics_df)
+    kpi1, kpi2, kpi3 = st.columns(3)
+    kpi1.metric("Matches in selected format", f"{total_matches:,}")
+    kpi2.metric("Teams represented", str(len(set(analytics_df.get("team_1", pd.Series(dtype=str)).dropna()) | set(analytics_df.get("team_2", pd.Series(dtype=str)).dropna()))))
+    kpi3.metric("Date range", str(analytics_df["date"].dt.year.dropna().min()) + " – " + str(analytics_df["date"].dt.year.dropna().max()) if analytics_df["date"].notna().any() else "Unavailable")
+
+    chart_col1, chart_col2 = st.columns(2)
+
+    # 1. Team-wise wins
+    with chart_col1:
+        st.markdown("#### 🏆 Team-wise Wins")
+        if winner_series is not None and analytics_df["_winner_for_charts"].notna().any():
+            wins = analytics_df["_winner_for_charts"].dropna().value_counts().head(15).sort_values()
+            fig = px.bar(wins, x=wins.values, y=wins.index, orientation="h", labels={"x": "Wins", "y": "Team"})
+            fig.update_traces(marker_color="#27b7f5", marker_line_color="#70d9ff", marker_line_width=0.5)
+            st.plotly_chart(_chart_layout(fig), use_container_width=True)
+        else:
+            st.info("Winner/team-1 outcome columns were not detected in this dataset, so team wins cannot be calculated safely.")
+
+    # 2. Selected-team win percentage donut
+    with chart_col2:
+        st.markdown("#### 🍩 Win Percentage")
+        if winner_series is not None and "team_1" in analytics_df.columns and "team_2" in analytics_df.columns:
+            available_teams = sorted(set(analytics_df["team_1"].dropna().astype(str)) | set(analytics_df["team_2"].dropna().astype(str)))
+            if available_teams:
+                donut_team = st.selectbox("Team for win/loss breakdown", available_teams, key="analytics_donut_team")
+                played = analytics_df[(analytics_df["team_1"].astype(str) == donut_team) | (analytics_df["team_2"].astype(str) == donut_team)]
+                team_wins = int(analytics_df["_winner_for_charts"].astype(str).eq(donut_team).sum())
+                completed = int(played["_winner_for_charts"].notna().sum())
+                team_losses = max(completed - team_wins, 0)
+                if completed > 0:
+                    fig = px.pie(names=["Wins", "Losses"], values=[team_wins, team_losses], hole=0.62, color_discrete_sequence=["#26b8f2", "#16d6b0"])
+                    fig.update_traces(textposition="inside", textinfo="label+percent", marker=dict(line=dict(color="#ffffff", width=2)))
+                    fig.update_layout(showlegend=True, annotations=[dict(text=f"{team_wins}/{completed}<br>Matches", x=0.5, y=0.5, showarrow=False, font=dict(color="#000000", size=15))])
+                    st.plotly_chart(_chart_layout(fig), use_container_width=True)
+                else:
+                    st.info("No completed match winner records found for this team.")
+            else:
+                st.info("Team names are unavailable for the win percentage chart.")
+        else:
+            st.info("Winner and team columns are required for the win-percentage chart.")
+
+    # 6. Confusion matrix from holdout validation
+    with st.container(border=True):
+        st.markdown("#### 🧩 Confusion Matrix — Holdout Evaluation")
+        target_col = _find_column(analytics_df, [
+            "team_1_won", "team1_won", "team_1_win", "team1_win", "team_1_winner",
+            "winner_encoded", "target", "label", "result_binary"
+        ])
+        model_features = list(getattr(model, "feature_names_in_", []))
+        if target_col and model_features and all(feature in analytics_df.columns for feature in model_features):
+            eval_df = analytics_df.dropna(subset=model_features + [target_col]).copy()
+            y = pd.to_numeric(eval_df[target_col], errors="coerce")
+            eval_df = eval_df.loc[y.notna()]
+            y = y.loc[y.notna()].astype(int)
+            if len(eval_df) >= 20 and y.nunique() == 2:
+                try:
+                    X = eval_df[model_features]
+                    X_train, X_test, y_train, y_test = train_test_split(
+                        X, y, test_size=0.25, random_state=42, stratify=y
+                    )
+                    evaluation_model = clone(model)
+                    evaluation_model.fit(X_train, y_train)
+                    y_pred = evaluation_model.predict(X_test)
+                    matrix = confusion_matrix(y_test, y_pred, labels=[0, 1])
+                    matrix_fig = px.imshow(
+                        matrix, text_auto=True, x=["Predicted Team 2", "Predicted Team 1"],
+                        y=["Actual Team 2", "Actual Team 1"], color_continuous_scale=[[0, "#dceaf5"], [0.5, "#86c8e8"], [1, "#26a6d9"]]
+                    )
+                    st.plotly_chart(_chart_layout(matrix_fig), use_container_width=True)
+                    metric_cols = st.columns(4)
+                    metric_cols[0].metric("Holdout Accuracy", f"{accuracy_score(y_test, y_pred):.1%}")
+                    metric_cols[1].metric("Precision", f"{precision_score(y_test, y_pred, zero_division=0):.3f}")
+                    metric_cols[2].metric("Recall", f"{recall_score(y_test, y_pred, zero_division=0):.3f}")
+                    metric_cols[3].metric("F1-score", f"{f1_score(y_test, y_pred, zero_division=0):.3f}")
+                except Exception as evaluation_error:
+                    st.warning("Holdout evaluation could not run with the available data/model features: " + str(evaluation_error))
+            else:
+                st.info("Not enough valid two-class target records for a holdout confusion matrix.")
+        else:
+            st.info("Confusion matrix requires a recognized binary target column and all trained model features in the dataset. The app will not fabricate evaluation values.")
+
+
+# ============================================================
+# TEAM SELECTION
+# ============================================================
+
+teams = sorted(
+    set(format_df["team_1"].dropna().astype(str))
+    | set(format_df["team_2"].dropna().astype(str))
+)
+
+st.header("📋 Match Setup")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    team1 = st.selectbox(
+        "🏏 Team 1",
+        teams
+    )
+
+with col2:
+
+    team2_options = [
+        team for team in teams
+        if team != team1
+    ]
+
+    team2 = st.selectbox(
+        "🏏 Team 2",
+        team2_options
+    )
+
+
+# ============================================================
+# DATE AND VENUE
+# ============================================================
+
+dates = sorted(
+    format_df["date"].dropna().dt.date.unique()
+)
+
+if dates:
+
+    selected_date = st.date_input(
+        "📅 Match Date",
+        value=dates[-1],
+        min_value=dates[0],
+        max_value=dates[-1],
+        format="DD/MM/YYYY"
+    )
+
+else:
+
+    selected_date = pd.Timestamp.today().date()
+
+
+venues = sorted(
+    format_df["venue"].dropna().astype(str).unique()
+)
+
+venue = st.selectbox(
+    "📍 Venue",
+    venues
+)
+
+
+city_data = format_df[
+    format_df["venue"].astype(str) == str(venue)
+]
+
+cities = sorted(
+    city_data["city"].dropna().astype(str).unique()
+)
+
+if cities:
+
+    city = st.selectbox(
+        "🏙️ City",
+        cities
+    )
+
+else:
+
+    city = ""
+
+
+# ============================================================
+# TOSS INFORMATION
+# ============================================================
+
+st.header("🪙 Toss Information")
+
+col3, col4 = st.columns(2)
+
+with col3:
+
+    toss_winner = st.radio(
+        "Toss Winner",
+        [team1, team2]
+    )
+
+with col4:
+
+    toss_decision = st.radio(
+        "Toss Decision",
+        ["bat", "field"]
+    )
+
+
+if toss_decision == "bat":
+
+    batting_first = toss_winner
+
+else:
+
+    if toss_winner == team1:
+        batting_first = team2
+    else:
+        batting_first = team1
+
+
+st.info(
+    "🏏 Batting First: " + batting_first
+)
+
+
+# ============================================================
+# PLAYER INFORMATION
+# ============================================================
+
+def get_players(team):
+
+    if players.empty:
+        return pd.DataFrame()
+
+    result = players[
+        players["team"].astype(str).str.strip()
+        == str(team).strip()
+    ].copy()
+
+    if result.empty:
+        return result
+
+    exact_date = result[
+        result["date"].dt.date == selected_date
+    ]
+
+    if not exact_date.empty:
+        result = exact_date
+
+    venue_result = result[
+        result["venue"].astype(str).str.strip()
+        == str(venue).strip()
+    ]
+
+    if not venue_result.empty:
+        result = venue_result
+
+    return result.drop_duplicates(
+        subset=["player"]
+    )
+
+
+team1_players = get_players(team1)
+team2_players = get_players(team2)
+
+
+if selected_format == "IPL":
+    st.markdown("---")
+    st.header("👥 Players")
+
+    player_col1, player_col2 = st.columns(2)
+
+    with player_col1:
+
+        st.subheader(team1)
+
+        if team1_players.empty:
+
+            st.warning("No player details found.")
+
+        else:
+
+            for number, player in enumerate(
+                team1_players["player"].dropna(),
+                start=1
+            ):
+
+                st.write(
+                    str(number) + ". " + str(player)
+                )
+
+
+    with player_col2:
+
+        st.subheader(team2)
+
+        if team2_players.empty:
+
+            st.warning("No player details found.")
+
+        else:
+
+            for number, player in enumerate(
+                team2_players["player"].dropna(),
+                start=1
+            ):
+
+                st.write(
+                    str(number) + ". " + str(player)
+                )
+
+
+else:
+    st.caption("Player details are shown only for IPL matches.")
+
+# ============================================================
+# TEAM STATISTICS
+# ============================================================
+
+def team_statistics(team):
+
+    history = format_df[
+        (
+            (format_df["team_1"] == team)
+            |
+            (format_df["team_2"] == team)
+        )
+        &
+        (
+            format_df["date"]
+            < pd.Timestamp(selected_date)
+        )
+    ].sort_values("date")
+
+    if history.empty:
+
+        return {
+            "win_rate": 0.5,
+            "recent": 0.5,
+            "venue": 0.5,
+            "city": 0.5
+        }
+
+    last = history.iloc[-1]
+
+    if last["team_1"] == team:
+
+        win_rate = last["team_1_win_rate"]
+        recent = last["team_1_recent_win_rate"]
+
+    else:
+
+        win_rate = last["team_2_win_rate"]
+        recent = last["team_2_recent_win_rate"]
+
+
+    # Venue statistics
+
+    venue_history = history[
+        history["venue"] == venue
+    ]
+
+    if venue_history.empty:
+
+        venue_rate = 0.5
+
+    else:
+
+        last_venue = venue_history.iloc[-1]
+
+        if last_venue["team_1"] == team:
+
+            venue_rate = last_venue[
+                "team_1_venue_win_rate"
+            ]
+
+        else:
+
+            venue_rate = last_venue[
+                "team_2_venue_win_rate"
+            ]
+
+
+    # City statistics
+
+    city_history = history[
+        history["city"] == city
+    ]
+
+    if city_history.empty:
+
+        city_rate = 0.5
+
+    else:
+
+        last_city = city_history.iloc[-1]
+
+        if last_city["team_1"] == team:
+
+            city_rate = last_city[
+                "team_1_city_win_rate"
+            ]
+
+        else:
+
+            city_rate = last_city[
+                "team_2_city_win_rate"
+            ]
+
+
+    values = [
+        win_rate,
+        recent,
+        venue_rate,
+        city_rate
+    ]
+
+    values = [
+        0.5 if pd.isna(value) else float(value)
+        for value in values
+    ]
+
+    return {
+        "win_rate": values[0],
+        "recent": values[1],
+        "venue": values[2],
+        "city": values[3]
+    }
+
+
+# ============================================================
+# HEAD-TO-HEAD STATISTICS
+# ============================================================
+
+def h2h_statistics():
+
+    history = format_df[
+        (
+            (
+                (format_df["team_1"] == team1)
+                &
+                (format_df["team_2"] == team2)
+            )
+            |
+            (
+                (format_df["team_1"] == team2)
+                &
+                (format_df["team_2"] == team1)
+            )
+        )
+        &
+        (
+            format_df["date"]
+            < pd.Timestamp(selected_date)
+        )
+    ].sort_values("date")
+
+    if history.empty:
+        return 0.5, 0.5
+
+    last = history.iloc[-1]
+
+    if last["team_1"] == team1:
+
+        h1 = last["team_1_h2h_win_rate"]
+        h2 = last["team_2_h2h_win_rate"]
+
+    else:
+
+        h1 = last["team_2_h2h_win_rate"]
+        h2 = last["team_1_h2h_win_rate"]
+
+    if pd.isna(h1):
+        h1 = 0.5
+
+    if pd.isna(h2):
+        h2 = 0.5
+
+    return float(h1), float(h2)
+
+
+# ============================================================
+# RANDOM FOREST MATCH WINNER PREDICTION
+# ============================================================
+
+st.markdown("---")
+
+if st.button(
+    "🚀 Predict Match Winner",
+    use_container_width=True
+):
+
+    try:
+
+        s1 = team_statistics(team1)
+        s2 = team_statistics(team2)
+
+        h1, h2 = h2h_statistics()
+
+        team1_toss = 1 if toss_winner == team1 else 0
+
+        team1_batted = 1 if batting_first == team1 else 0
+
+        team1_toss_bat = (
+            1
+            if (
+                toss_winner == team1
+                and batting_first == team1
+            )
+            else 0
+        )
+
+
+        input_data = pd.DataFrame([{
+
+            "match_type": selected_format,
+
+            "team_1": team1,
+
+            "team_2": team2,
+
+            "venue": venue,
+
+            "city": city,
+
+            "toss_winner": toss_winner,
+
+            "toss_decision": toss_decision,
+
+            "team_1_win_rate":
+                s1["win_rate"],
+
+            "team_2_win_rate":
+                s2["win_rate"],
+
+            "win_rate_difference":
+                s1["win_rate"] - s2["win_rate"],
+
+            "team_1_recent_win_rate":
+                s1["recent"],
+
+            "team_2_recent_win_rate":
+                s2["recent"],
+
+            "recent_form_difference":
+                s1["recent"] - s2["recent"],
+
+            "team_1_h2h_win_rate":
+                h1,
+
+            "team_2_h2h_win_rate":
+                h2,
+
+            "h2h_difference":
+                h1 - h2,
+
+            "team_1_won_toss":
+                team1_toss,
+
+            "team_1_batted_first":
+                team1_batted,
+
+            "team_1_venue_win_rate":
+                s1["venue"],
+
+            "team_2_venue_win_rate":
+                s2["venue"],
+
+            "venue_win_rate_difference":
+                s1["venue"] - s2["venue"],
+
+            "team_1_city_win_rate":
+                s1["city"],
+
+            "team_2_city_win_rate":
+                s2["city"],
+
+            "city_win_rate_difference":
+                s1["city"] - s2["city"],
+
+            "team_1_toss_and_bat":
+                team1_toss_bat
+
+        }])
+
+
+        # Match the trained model's feature order.
+
+        model_features = list(
+            model.feature_names_in_
+        )
+
+        input_data = input_data[
+            model_features
+        ]
+
+
+        # Generate prediction probabilities.
+
+        probabilities = model.predict_proba(
+            input_data
+        )[0]
+
+
+        team1_probability = 0.0
+        team2_probability = 0.0
+
+
+        for class_value, probability in zip(
+            model.classes_,
+            probabilities
+        ):
+
+            if int(class_value) == 1:
+
+                team1_probability = float(
+                    probability
+                )
+
+            elif int(class_value) == 0:
+
+                team2_probability = float(
+                    probability
+                )
+
+
+        team1_percent = round(
+            team1_probability * 100,
+            2
+        )
+
+        team2_percent = round(
+            team2_probability * 100,
+            2
+        )
+
+
+        # Determine predicted winner.
+
+        if team1_probability > team2_probability:
+
+            winner = team1
+
+        elif team2_probability > team1_probability:
+
+            winner = team2
+
+        else:
+
+            winner = "Too Close to Call"
+
+
+        confidence = round(
+            max(
+                team1_percent,
+                team2_percent
+            ),
+            2
+        )
+
+
+        if confidence >= 70:
+
+            level = "High 🟢"
+
+        elif confidence >= 60:
+
+            level = "Medium 🟡"
+
+        else:
+
+            level = "Low 🔴"
+
+
+        # Display prediction.
+
+        st.markdown("---")
+        st.header("🎯 Prediction Result")
+
+        st.success(
+            "🏆 Predicted Winner: "
+            + winner
+        )
+
+
+        result1, result2 = st.columns(2)
+
+        with result1:
+
+            st.metric(
+                team1 + " Win Probability",
+                str(team1_percent) + "%"
+            )
+
+            st.progress(
+                team1_probability
+            )
+
+
+        with result2:
+
+            st.metric(
+                team2 + " Win Probability",
+                str(team2_percent) + "%"
+            )
+
+            st.progress(
+                team2_probability
+            )
+
+
+        # Display confidence.
+
+        st.subheader("📊 Confidence")
+
+        st.metric(
+            "Confidence",
+            str(confidence) + "%"
+        )
+
+        st.write(
+            "Confidence Level: **"
+            + level
+            + "**"
+        )
+
+
+        # Display match information.
+
+        st.subheader("🏏 Match Information")
 
         st.write(
             "**Format:** "
