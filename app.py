@@ -1,5 +1,35 @@
 
+import os
+import joblib
+import pandas as pd
+import streamlit as st
+
+
+st.title("🏏 Cricket Match Winner Prediction")
+
+
+
+
         st.subheader("🏏 Match Information")
+
+        st.write("**Format:** " + selected_format)
+        st.write("**Date:** " + selected_date.strftime("%d/%m/%Y"))
+        st.write("**Team 1:** " + team1)
+        st.write("**Team 2:** " + team2)
+        st.write("**Venue:** " + venue)
+        st.write("**City:** " + city)
+        st.write("**Toss Winner:** " + toss_winner)
+        st.write("**Toss Decision:** " + toss_decision)
+        st.write("**Batting First:** " + batting_first)
+
+
+# ============================================================
+# FOOTER
+# ============================================================
+
+st.markdown("---")
+st.caption("🏏 Cricket Match Winner Prediction • IPL • T20I • ODI • Test • Random Forest")        
+st.subheader("🏏 Match Information")
 
         st.write(
             "**Format:** "
