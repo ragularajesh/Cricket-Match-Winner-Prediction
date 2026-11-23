@@ -1,94 +1,125 @@
-import os
-import joblib
-import pandas as pd
-import streamlit as st
-import requests
-import plotly.express as px
-from sklearn.base import clone
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
-from streamlit.errors import StreamlitSecretNotFoundError
 
-st.set_page_config(
-    page_title="Cricket Match Winner Prediction",
-    page_icon="🏏",
-    layout="wide"
-)
+        st.subheader("🏏 Match Information")
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-MODEL_PATH = os.path.join(
-    BASE_DIR,
-    "models",
-    "cricket_winner_random_forest.pkl"
-)
-
-DATA_PATH = os.path.join(
-    BASE_DIR,
-    "data",
-    "cleaned",
-    "combined_features.csv"
-)
-
-PLAYERS_PATH = os.path.join(
-    BASE_DIR,
-    "data",
-    "cleaned",
-    "match_players.csv"
-)
-
-
-# ============================================================
-# LOAD MODEL AND DATA
-# ============================================================
-
-@st.cache_resource
-def load_model():
-    return joblib.load(MODEL_PATH)
-
-
-@st.cache_data
-def load_data():
-    data = pd.read_csv(DATA_PATH)
-    data["date"] = pd.to_datetime(
-        data["date"],
-        errors="coerce"
-    )
-    return data
-
-
-@st.cache_data
-def load_players():
-    if os.path.exists(PLAYERS_PATH):
-        data = pd.read_csv(PLAYERS_PATH)
-        data["date"] = pd.to_datetime(
-            data["date"],
-            errors="coerce"
+        st.write(
+            "**Format:** "
+            + selected_format
         )
-        return data
 
-    return pd.DataFrame()
+        st.write(
+            "**Date:** "
+            + selected_date.strftime("%d/%m/%Y")
+        )
+
+        st.write(
+            "**Team 1:** "
+            + team1
+        )
+
+        st.write(
+            "**Team 2:** "
+            + team2
+        )
+
+        st.write(
+            "**Venue:** "
+            + venue
+        )
+
+        st.write(
+            "**City:** "
+            + city
+        )
+
+        st.write(
+            "**Toss Winner:** "
+            + toss_winner
+        )
+
+        st.write(
+            "**Toss Decision:** "
+            + toss_decision
+        )
+
+        st.write(
+            "**Batting First:** "
+            + batting_first
+        )
 
 
-model = load_model()
-df = load_data()
-players = load_players()
+        if selected_format == "IPL":
+                    # Display selected players.
+
+                    st.markdown("---")
+                    st.header("👥 Selected Match Players")
+
+                    result_col1, result_col2 = st.columns(2)
+
+                    with result_col1:
+
+                        st.subheader(team1)
+
+                        if team1_players.empty:
+
+                            st.info(
+                                "No player details available."
+                            )
+
+                        else:
+
+                            for number, player in enumerate(
+                                team1_players["player"].dropna(),
+                                start=1
+                            ):
+
+                                st.write(
+                                    str(number)
+                                    + ". "
+                                    + str(player)
+                                )
+
+
+                    with result_col2:
+
+                        st.subheader(team2)
+
+                        if team2_players.empty:
+
+                            st.info(
+                                "No player details available."
+                            )
+
+                        else:
+
+                            for number, player in enumerate(
+                                team2_players["player"].dropna(),
+                                start=1
+                            ):
+
+                                st.write(
+                                    str(number)
+                                    + ". "
+                                    + str(player)
+                                )
+
+
+    except Exception as error:
+
+        st.error(
+            "❌ Prediction failed."
+        )
+
+        st.exception(error)
 
 
 # ============================================================
-# APPLICATION TITLE
+# FOOTER
 # ============================================================
 
-st.title("🏏 Cricket Match Winner Prediction")
-st.write("IPL • T20I • ODI • Test")
+st.markdown("---")
 
-# Light theme with black text
-st.markdown("""
-<style>
-    .stApp { background-color: #f5f7fa; color: #000000; }
-    p, label, span, div, li { color: #000000; }
-    h1, h2, h3, h4, h5, h6 { color: #000000 !important; }
-    div[data-testid="stMetric"] { background: #ffffff; border: 1px solid #d6dce5; padding: 14px; border-radius: 14px; }
-    div[data-testid="stVerticalBlockBorderWrapper"] { border-color: #d6dce5 !important; }
-</style>
-""", unsafe_allow_html=True)
+st.caption(
+    "🏏 Cricket Match Winner Prediction "
+    "• IPL • T20I • ODI • Test "
+    "• Random Forest"
+)
